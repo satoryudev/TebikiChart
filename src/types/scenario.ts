@@ -34,7 +34,7 @@ export interface DocumentPreviewBlock {
   message: string
   targetId: string
   targetLabel: string
-  documentType: 'mynumber-card' | 'receipt' | 'residence-certificate' | 'custom'
+  documentType: 'mynumber-card' | 'receipt' | 'residence-certificate' | 'custom' | (string & {})
   previewImageUrl?: string
   buttonLabel?: string
   nextId: string | null

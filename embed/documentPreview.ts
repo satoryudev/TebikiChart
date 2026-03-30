@@ -6,8 +6,22 @@ const MODAL_ID = 'tq-doc-modal'
 
 // Simple placeholder SVG images (embedded)
 function getDocumentPreviewContent(type: DocumentPreviewBlock['documentType'], customUrl?: string): string {
+  // 旧 custom（URL直指定）
   if (type === 'custom' && customUrl) {
     return `<img src="${customUrl}" alt="書類の見本" style="max-width:100%;border-radius:8px;">`
+  }
+
+  // カスタムアップロード（LocalStorage から取得）
+  if (type.startsWith('cdoc-')) {
+    try {
+      const list: { id: string; label: string; imageBase64: string }[] =
+        JSON.parse(localStorage.getItem('tq_custom_doc_types') ?? '[]')
+      const found = list.find((d) => d.id === type)
+      if (found) {
+        return `<img src="${found.imageBase64}" alt="${found.label}" style="max-width:100%;border-radius:8px;">`
+      }
+    } catch { /* ignore */ }
+    return `<p style="color:#6b7280;text-align:center;">画像が見つかりません</p>`
   }
 
   const placeholders: Record<string, string> = {
