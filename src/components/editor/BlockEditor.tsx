@@ -427,7 +427,7 @@ export default function BlockEditor() {
   }
 
   return (
-    <div className="bg-white flex flex-col h-full w-full">
+    <div id="block-editor" className="bg-white flex flex-col h-full w-full">
       <div className="px-3 py-2 border-b border-gray-100">
         <p className="text-xs text-gray-400 font-mono truncate">{block.id}</p>
       </div>

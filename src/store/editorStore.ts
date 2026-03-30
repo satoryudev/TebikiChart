@@ -19,7 +19,7 @@ interface EditorState {
   addBlock: (block: Block) => void
   removeBlock: (id: string) => void
   reorderBlocks: (blocks: Block[]) => void
-  updateScenarioMeta: (meta: Partial<Pick<Scenario, 'title' | 'category' | 'totalSteps' | 'startBlockId'>>) => void
+  updateScenarioMeta: (meta: Partial<Pick<Scenario, 'title' | 'category' | 'totalSteps' | 'startBlockId' | 'previewUrl' | 'completedAt'>>) => void
   persist: () => void
   startPick: (req: PickRequest) => void
   applyPick: (value: string) => void

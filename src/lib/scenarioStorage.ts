@@ -2,7 +2,7 @@ import { Scenario } from '@/types/scenario'
 
 const STORAGE_KEY = 'tetsuzuki_quest_scenarios'
 
-const DEMO_SCENARIO: Scenario = {
+export const DEMO_SCENARIO: Scenario = {
   id: 'demo-moving',
   title: '引越し・転居届の手続き',
   category: 'moving',

@@ -20,9 +20,11 @@ interface Props {
   isPlaying: boolean
   onPlay: () => void
   onStop: () => void
+  onPlayCallback?: () => void
+  onExportCallback?: () => void
 }
 
-export default function PreviewToolbar({ isPlaying, onPlay, onStop }: Props) {
+export default function PreviewToolbar({ isPlaying, onPlay, onStop, onPlayCallback, onExportCallback }: Props) {
   const { scenario, updateScenarioMeta } = useEditorStore()
 
   const handleExport = () => {
@@ -31,10 +33,17 @@ export default function PreviewToolbar({ isPlaying, onPlay, onStop }: Props) {
     const url = URL.createObjectURL(blob)
     Object.assign(document.createElement('a'), { href: url, download: `${scenario.id}.json` }).click()
     URL.revokeObjectURL(url)
+    updateScenarioMeta({ completedAt: new Date().toISOString() })
+    onExportCallback?.()
+  }
+
+  const handlePlay = () => {
+    onPlay()
+    onPlayCallback?.()
   }
 
   return (
-    <div className="bg-white border-b border-gray-200 flex-shrink-0 px-3 py-1.5 space-y-1.5">
+    <div id="preview-toolbar" className="bg-white border-b border-gray-200 flex-shrink-0 px-3 py-1.5 space-y-1.5">
       {/* 行1: 開始ブロック / 総ステップ / 実行・停止 */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 flex-shrink-0">
@@ -64,7 +73,7 @@ export default function PreviewToolbar({ isPlaying, onPlay, onStop }: Props) {
 
         <div className="flex items-center gap-1.5 ml-auto flex-shrink-0">
           <button
-            onClick={onPlay} disabled={isPlaying}
+            onClick={handlePlay} disabled={isPlaying}
             className="text-xs px-3 py-1.5 rounded font-semibold bg-green-500 text-white
               hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >▶ 実行</button>

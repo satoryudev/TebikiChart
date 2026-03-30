@@ -11,6 +11,10 @@ import BlockEditor from '@/components/editor/BlockEditor'
 import PreviewPane from '@/components/editor/PreviewPane'
 import PreviewToolbar from '@/components/editor/PreviewToolbar'
 import ResizeDivider from '@/components/editor/ResizeDivider'
+import { useOnboarding } from '@/hooks/useOnboarding'
+import EditorTour from '@/components/onboarding/EditorTour'
+import { getScenarioStatus, ScenarioStatus } from '@/lib/scenarioUtils'
+import { Scenario } from '@/types/scenario'
 
 const PANEL_MIN = 160
 const COLLAPSED_W = 32
@@ -23,16 +27,44 @@ function PanelHeader({
   title, collapsed, onToggle,
 }: { title: string; collapsed: boolean; onToggle: () => void }) {
   return (
-    <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
-      {!collapsed && <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{title}</span>}
+    <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border-b border-slate-200/70 flex-shrink-0">
+      {!collapsed && <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</span>}
       <button
         onClick={onToggle}
-        className="ml-auto text-gray-400 hover:text-gray-700 transition-colors w-5 h-5
-          flex items-center justify-center rounded hover:bg-gray-200 text-xs font-bold"
+        className="ml-auto text-slate-400 hover:text-slate-700 transition-colors w-5 h-5
+          flex items-center justify-center rounded hover:bg-slate-200 text-xs font-bold"
         title={collapsed ? '展開' : '最小化'}
       >
         {collapsed ? '▶' : '×'}
       </button>
+    </div>
+  )
+}
+
+const STATUS_CONFIG: Record<ScenarioStatus, { label: string; cls: string }> = {
+  not_started: { label: '未開始',  cls: 'bg-gray-100 text-gray-600' },
+  in_progress:  { label: '作成中',  cls: 'bg-blue-100 text-blue-700' },
+  completed:    { label: '完了 ✓', cls: 'bg-emerald-100 text-emerald-700' },
+}
+
+function StatusBadge({ scenario }: { scenario: Scenario }) {
+  const status = getScenarioStatus(scenario)
+  const { label, cls } = STATUS_CONFIG[status]
+  return <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${cls}`}>{label}</span>
+}
+
+function EditorProgressBar({ steps }: { steps: Array<{ completed: boolean }> }) {
+  const done = steps.filter((s) => s.completed).length
+  const pct = Math.round((done / steps.length) * 100)
+  return (
+    <div className="flex items-center gap-2 w-44">
+      <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+        <div
+          className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">{done}/{steps.length}</span>
     </div>
   )
 }
@@ -62,6 +94,10 @@ export default function EditorPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [titleEditing, setTitleEditing] = useState(false)
+  const { tourCompleted, completeTour } = useOnboarding()
+  const [tourActive, setTourActive] = useState(false)
+  const [previewPlayed, setPreviewPlayed] = useState(false)
+  const [exported, setExported] = useState(false)
 
   const [widths, setWidths] = useState<PanelWidths>({ palette: 220, canvas: 340, preview: 420, blockEditor: 260 })
   const [collapsed, setCollapsed] = useState<Collapsed>({ palette: false, preview: false, blockEditor: false })
@@ -87,6 +123,12 @@ export default function EditorPage() {
     const s = loadScenario(id)
     if (s) setScenario(s)
   }, [id, setScenario])
+
+  useEffect(() => {
+    if (tourCompleted) return
+    const t = setTimeout(() => setTourActive(true), 500)
+    return () => clearTimeout(t)
+  }, [tourCompleted])
 
   useEffect(() => {
     if (!pickRequest) return
@@ -146,41 +188,61 @@ export default function EditorPage() {
   const previewW = collapsed.preview ? COLLAPSED_W : widths.preview
   const blockEditorW = collapsed.blockEditor ? COLLAPSED_W : widths.blockEditor
 
+  const stepperSteps = [
+    { label: 'ブロックを追加', completed: (scenario?.blocks.length ?? 0) > 0 },
+    { label: 'ブロックを設定', completed: scenario?.blocks.some((b) => {
+      if (b.type === 'speech') return b.message !== '新しいセリフ'
+      if (b.type === 'branch') return b.question !== 'はいですか？'
+      return false
+    }) ?? false },
+    { label: 'プレビュー確認', completed: previewPlayed },
+    { label: 'エクスポート', completed: exported },
+  ]
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      {/* Top header */}
-      <header className="flex items-center gap-3 px-4 py-2 bg-white border-b border-gray-200 flex-shrink-0">
-        <Link href="/" className="text-gray-400 hover:text-gray-700 transition-colors text-sm flex-shrink-0">
-          ← 一覧
-        </Link>
-        <span className="text-gray-300">|</span>
-        {titleEditing ? (
-          <input
-            autoFocus
-            className="font-semibold text-sm border border-blue-400 rounded px-2 py-0.5 min-w-0"
-            value={scenario.title}
-            onChange={(e) => updateScenarioMeta({ title: e.target.value })}
-            onBlur={() => setTitleEditing(false)}
-            onKeyDown={(e) => e.key === 'Enter' && setTitleEditing(false)}
-          />
-        ) : (
-          <button
-            onClick={() => setTitleEditing(true)}
-            className="font-semibold text-sm text-gray-800 hover:text-blue-600 transition-colors truncate max-w-xs"
+      {/* Top header — breadcrumb style */}
+      <header className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-gray-200 flex-shrink-0 min-h-[48px]">
+        {/* Left: breadcrumb + title */}
+        <div className="flex items-center gap-1.5 text-sm min-w-0">
+          <Link href="/" className="text-slate-500 hover:text-slate-700 transition-colors flex items-center gap-1 flex-shrink-0 text-xs">
+            ← ダッシュボード
+          </Link>
+          <span className="text-gray-300 flex-shrink-0">/</span>
+          {titleEditing ? (
+            <input
+              autoFocus
+              className="font-semibold text-sm border border-blue-400 rounded px-2 py-0.5 min-w-0"
+              value={scenario.title}
+              onChange={(e) => updateScenarioMeta({ title: e.target.value })}
+              onBlur={() => setTitleEditing(false)}
+              onKeyDown={(e) => e.key === 'Enter' && setTitleEditing(false)}
+            />
+          ) : (
+            <button
+              onClick={() => setTitleEditing(true)}
+              className="font-semibold text-sm text-gray-800 hover:text-blue-600 transition-colors truncate max-w-[200px]"
+            >
+              {scenario.title}
+            </button>
+          )}
+          <select
+            className="text-xs border border-gray-200 rounded px-2 py-1 bg-white text-gray-600 flex-shrink-0 ml-1"
+            value={scenario.category}
+            onChange={(e) => updateScenarioMeta({ category: e.target.value as typeof scenario.category })}
           >
-            {scenario.title}
-          </button>
-        )}
-        <select
-          className="text-xs border border-gray-200 rounded px-2 py-1 bg-white text-gray-600 flex-shrink-0"
-          value={scenario.category}
-          onChange={(e) => updateScenarioMeta({ category: e.target.value as typeof scenario.category })}
-        >
-          <option value="moving">引越し・転居</option>
-          <option value="mynumber">マイナンバー</option>
-          <option value="tax">確定申告</option>
-          <option value="childcare">育児・出産</option>
-        </select>
+            <option value="moving">引越し・転居</option>
+            <option value="mynumber">マイナンバー</option>
+            <option value="tax">確定申告</option>
+            <option value="childcare">育児・出産</option>
+          </select>
+        </div>
+
+        {/* Right: status badge + linear progress */}
+        <div className="flex items-center gap-4 flex-shrink-0 ml-4">
+          <StatusBadge scenario={scenario} />
+          <EditorProgressBar steps={stepperSteps} />
+        </div>
       </header>
 
       {/* Main 4-panel layout */}
@@ -206,7 +268,13 @@ export default function EditorPage() {
 
         {/* ── キャンバス ── */}
         <div className="flex flex-col flex-1 min-w-[200px] overflow-hidden">
-          <PreviewToolbar isPlaying={isPlaying} onPlay={handlePlay} onStop={handleStop} />
+          <PreviewToolbar
+            isPlaying={isPlaying}
+            onPlay={handlePlay}
+            onStop={handleStop}
+            onPlayCallback={() => setPreviewPlayed(true)}
+            onExportCallback={() => setExported(true)}
+          />
           <Canvas />
         </div>
 
@@ -255,6 +323,19 @@ export default function EditorPage() {
         )}
 
       </div>
+
+      {/* Editor tour (portal → document.body) */}
+      <EditorTour
+        active={tourActive}
+        onComplete={() => {
+          setTourActive(false)
+          completeTour()
+        }}
+        onSkip={() => {
+          setTourActive(false)
+          completeTour()
+        }}
+      />
     </div>
   )
 }
