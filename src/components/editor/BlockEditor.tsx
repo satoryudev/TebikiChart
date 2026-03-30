@@ -11,6 +11,53 @@ import {
   BranchBlock,
 } from '@/types/scenario'
 
+/** セレクタ入力欄 + 🎯 ピックボタン */
+function SelectorInput({
+  label,
+  value,
+  onChange,
+  blockId,
+  field,
+  withHash,
+  placeholder,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  blockId: string
+  field: string
+  withHash: boolean
+  placeholder?: string
+}) {
+  const { startPick, pickRequest } = useEditorStore()
+  const isPicking = pickRequest?.blockId === blockId && pickRequest?.field === field
+  return (
+    <div>
+      <label className="label">{label}</label>
+      <div className="flex gap-1">
+        <input
+          className={`input flex-1 ${isPicking ? 'ring-2 ring-amber-400 border-amber-400' : ''}`}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+        />
+        <button
+          type="button"
+          title="プレビューで要素をクリックして選択"
+          onClick={() => startPick({ blockId, field, withHash })}
+          className={`px-2 rounded border text-sm transition-colors ${
+            isPicking
+              ? 'bg-amber-400 border-amber-400 text-white'
+              : 'border-gray-200 text-gray-400 hover:border-amber-400 hover:text-amber-500'
+          }`}
+        >
+          🎯
+        </button>
+      </div>
+    </div>
+  )
+}
+
 const TYPE_EMOJI: Record<Block['type'], string> = {
   speech: '💬',
   spotlight: '🔦',
@@ -107,10 +154,15 @@ function SpotlightEditor({ block }: { block: SpotlightBlock }) {
         <label className="label">説明文</label>
         <textarea className="input min-h-[60px] resize-y" value={block.message} onChange={(e) => updateBlock({ ...block, message: e.target.value })} />
       </div>
-      <div>
-        <label className="label">CSSセレクタ</label>
-        <input className="input" value={block.targetSelector} onChange={(e) => updateBlock({ ...block, targetSelector: e.target.value })} placeholder="#submit-btn" />
-      </div>
+      <SelectorInput
+        label="CSSセレクタ"
+        value={block.targetSelector}
+        onChange={(v) => updateBlock({ ...block, targetSelector: v })}
+        blockId={block.id}
+        field="targetSelector"
+        withHash={true}
+        placeholder="#submit-btn"
+      />
       <div>
         <label className="label">ラベル名</label>
         <input className="input" value={block.targetLabel} onChange={(e) => updateBlock({ ...block, targetLabel: e.target.value })} />
@@ -129,10 +181,15 @@ function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
         <label className="label">説明文</label>
         <textarea className="input min-h-[60px] resize-y" value={block.message} onChange={(e) => updateBlock({ ...block, message: e.target.value })} />
       </div>
-      <div>
-        <label className="label">対象 input の ID</label>
-        <input className="input" value={block.targetId} onChange={(e) => updateBlock({ ...block, targetId: e.target.value })} placeholder="postal-code" />
-      </div>
+      <SelectorInput
+        label="対象 input の ID"
+        value={block.targetId}
+        onChange={(v) => updateBlock({ ...block, targetId: v })}
+        blockId={block.id}
+        field="targetId"
+        withHash={false}
+        placeholder="postal-code"
+      />
       <div>
         <label className="label">ラベル名</label>
         <input className="input" value={block.targetLabel} onChange={(e) => updateBlock({ ...block, targetLabel: e.target.value })} />
@@ -151,10 +208,15 @@ function DocumentPreviewEditor({ block }: { block: DocumentPreviewBlock }) {
         <label className="label">説明文</label>
         <textarea className="input min-h-[60px] resize-y" value={block.message} onChange={(e) => updateBlock({ ...block, message: e.target.value })} />
       </div>
-      <div>
-        <label className="label">対象 input の ID</label>
-        <input className="input" value={block.targetId} onChange={(e) => updateBlock({ ...block, targetId: e.target.value })} placeholder="mynumber-input" />
-      </div>
+      <SelectorInput
+        label="対象 input の ID"
+        value={block.targetId}
+        onChange={(v) => updateBlock({ ...block, targetId: v })}
+        blockId={block.id}
+        field="targetId"
+        withHash={false}
+        placeholder="mynumber-input"
+      />
       <div>
         <label className="label">ラベル名</label>
         <input className="input" value={block.targetLabel} onChange={(e) => updateBlock({ ...block, targetLabel: e.target.value })} />
@@ -192,10 +254,15 @@ function ValidationEditor({ block }: { block: ValidationBlock }) {
         <label className="label">説明文</label>
         <textarea className="input min-h-[60px] resize-y" value={block.message} onChange={(e) => updateBlock({ ...block, message: e.target.value })} />
       </div>
-      <div>
-        <label className="label">CSSセレクタ</label>
-        <input className="input" value={block.targetSelector} onChange={(e) => updateBlock({ ...block, targetSelector: e.target.value })} placeholder="#postal-code" />
-      </div>
+      <SelectorInput
+        label="CSSセレクタ"
+        value={block.targetSelector}
+        onChange={(v) => updateBlock({ ...block, targetSelector: v })}
+        blockId={block.id}
+        field="targetSelector"
+        withHash={true}
+        placeholder="#postal-code"
+      />
       <div>
         <label className="label">ラベル名</label>
         <input className="input" value={block.targetLabel} onChange={(e) => updateBlock({ ...block, targetLabel: e.target.value })} />

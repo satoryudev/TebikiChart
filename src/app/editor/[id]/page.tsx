@@ -14,7 +14,7 @@ import PreviewToolbar from '@/components/editor/PreviewToolbar'
 export default function EditorPage() {
   const params = useParams()
   const id = params.id as string
-  const { scenario, setScenario, updateScenarioMeta } = useEditorStore()
+  const { scenario, setScenario, updateScenarioMeta, pickRequest, applyPick, cancelPick } = useEditorStore()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [titleEditing, setTitleEditing] = useState(false)
@@ -23,6 +23,42 @@ export default function EditorPage() {
     const s = loadScenario(id)
     if (s) setScenario(s)
   }, [id, setScenario])
+
+  // pickRequest が立ったら iframe にピックモード開始を送信
+  useEffect(() => {
+    if (!pickRequest) return
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: 'TETSUZUKI_QUEST_PICK_START' },
+      '*'
+    )
+  }, [pickRequest])
+
+  // iframe からピック結果を受信
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type !== 'TETSUZUKI_QUEST_ELEMENT_PICKED') return
+      const { selector, id: elemId } = e.data as { selector: string; id: string }
+      if (!pickRequest) return
+      applyPick(pickRequest.withHash ? selector : elemId)
+    }
+    window.addEventListener('message', handler)
+    return () => window.removeEventListener('message', handler)
+  }, [pickRequest, applyPick])
+
+  // Escape でキャンセル
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && pickRequest) {
+        iframeRef.current?.contentWindow?.postMessage(
+          { type: 'TETSUZUKI_QUEST_PICK_CANCEL' },
+          '*'
+        )
+        cancelPick()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [pickRequest, cancelPick])
 
   if (!scenario) {
     return (
@@ -107,7 +143,19 @@ export default function EditorPage() {
         </div>
 
         {/* Center-right: Preview */}
-        <PreviewPane ref={iframeRef} isPlaying={isPlaying} />
+        <div className="relative flex flex-col flex-1 min-w-[400px]">
+          {pickRequest && (
+            <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between
+              bg-amber-400 text-amber-900 text-xs font-semibold px-3 py-1.5">
+              <span>🎯 クリックで要素を選択 — ESC でキャンセル</span>
+              <button onClick={() => {
+                iframeRef.current?.contentWindow?.postMessage({ type: 'TETSUZUKI_QUEST_PICK_CANCEL' }, '*')
+                cancelPick()
+              }} className="underline">キャンセル</button>
+            </div>
+          )}
+          <PreviewPane ref={iframeRef} isPlaying={isPlaying} />
+        </div>
 
         {/* Right: Block Editor */}
         <BlockEditor />
