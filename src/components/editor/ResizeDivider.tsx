@@ -2,12 +2,20 @@
 
 interface Props {
   onResize: (delta: number) => void
+  onDragStart?: () => void
 }
 
-export default function ResizeDivider({ onResize }: Props) {
+export default function ResizeDivider({ onResize, onDragStart }: Props) {
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
     const startX = e.clientX
+
+    // mousedown時にパネルの開始幅を記録させる
+    onDragStart?.()
+
+    // ドラッグ中はiframeがマウスイベントを横取りするのを防ぐ
+    const iframes = document.querySelectorAll<HTMLElement>('iframe')
+    iframes.forEach(f => (f.style.pointerEvents = 'none'))
 
     const onMove = (me: MouseEvent) => {
       onResize(me.clientX - startX)
@@ -17,6 +25,7 @@ export default function ResizeDivider({ onResize }: Props) {
       document.removeEventListener('mouseup', onUp)
       document.body.style.cursor = ''
       document.body.style.userSelect = ''
+      iframes.forEach(f => (f.style.pointerEvents = ''))
     }
 
     document.body.style.cursor = 'col-resize'
