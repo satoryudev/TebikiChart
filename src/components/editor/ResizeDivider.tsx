@@ -8,10 +8,8 @@ interface Props {
 export default function ResizeDivider({ onResize, onDragStart }: Props) {
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
+    onDragStart?.()   // startWidth をここで一度だけ記録させる
     const startX = e.clientX
-
-    // mousedown時にパネルの開始幅を記録させる
-    onDragStart?.()
 
     // ドラッグ中はiframeがマウスイベントを横取りするのを防ぐ
     const iframes = document.querySelectorAll<HTMLElement>('iframe')

@@ -18,7 +18,7 @@ export function initProgressBar(totalSteps: number, options?: ProgressBarOptions
   container.style.cssText = `
     position:fixed;top:0;left:0;width:100%;height:48px;
     background:white;border-bottom:1px solid #e5e7eb;
-    z-index:99997;display:flex;align-items:center;
+    z-index:100001;display:flex;align-items:center;
     padding:0 16px;gap:12px;
     box-shadow:0 1px 4px rgba(0,0,0,0.05);
   `

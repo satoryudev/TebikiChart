@@ -104,12 +104,12 @@ export default function EditorPage() {
   const [widths, setWidths] = useState<PanelWidths>({ palette: 220, canvas: 340, preview: 420, blockEditor: 260 })
   const [collapsed, setCollapsed] = useState<Collapsed>({ palette: false, preview: false, blockEditor: false })
 
-  // 各パネルのstartWidthをマウスダウン時に記録するため ref で管理
+  // mousedown 時に一度だけ記録する startWidth refs
   const paletteStartRef = useRef(widths.palette)
   const previewStartRef = useRef(widths.preview)
   const blockEditorStartRef = useRef(widths.blockEditor)
 
-  // コンテナ幅とパネル幅の最新値を常に参照できるよう ref で保持
+  // コンテナ幅とパネル幅の最新値を常に参照できるよう ref で保持（上限制約計算に使用）
   const containerRef = useRef<HTMLDivElement>(null)
   const paletteWRef = useRef(0)
   const blockEditorWRef = useRef(0)
@@ -174,6 +174,7 @@ export default function EditorPage() {
       iframe.onload = null
       iframe.contentWindow?.postMessage({ type: 'TETSUZUKI_QUEST_START', scenario }, '*')
       setIsPlaying(true)
+      setPreviewPlayed(true)
     }
   }
 
@@ -276,13 +277,7 @@ export default function EditorPage() {
 
         {/* ── キャンバス ── */}
         <div className="flex flex-col flex-1 min-w-[200px] overflow-hidden">
-          <PreviewToolbar
-            isPlaying={isPlaying}
-            onPlay={handlePlay}
-            onStop={handleStop}
-            onPlayCallback={() => setPreviewPlayed(true)}
-            onExportCallback={() => setExported(true)}
-          />
+          <PreviewToolbar onExportCallback={() => setExported(true)} />
           <Canvas />
         </div>
 
@@ -313,7 +308,7 @@ export default function EditorPage() {
               </div>
             )}
             <div className="flex-1 overflow-hidden">
-              <PreviewPane ref={iframeRef} isPlaying={isPlaying} previewUrl={scenario.previewUrl} />
+              <PreviewPane ref={iframeRef} isPlaying={isPlaying} previewUrl={scenario.previewUrl} onPlay={handlePlay} onStop={handleStop} />
             </div>
           </div>
         )}

@@ -69,6 +69,7 @@ export class ScenarioEngine {
         break
 
       case 'input-spotlight':
+        removeOverlay()
         handleInputSpotlight(block, () => this.next(block.nextId))
         break
 

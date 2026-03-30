@@ -28,7 +28,7 @@ export function handleInputSpotlight(
     position:fixed;inset:0;
     background:transparent;
     z-index:99998;
-    pointer-events:all;
+    pointer-events:none;
   `
 
   const svgNS = 'http://www.w3.org/2000/svg'
@@ -68,6 +68,7 @@ export function handleInputSpotlight(
   darken.setAttribute('height', '100%')
   darken.setAttribute('fill', 'rgba(0,0,0,0.75)')
   darken.setAttribute('mask', 'url(#tq-input-mask)')
+  darken.style.pointerEvents = 'none'
   svg.appendChild(darken)
 
   el.appendChild(svg)
@@ -85,10 +86,11 @@ export function handleInputSpotlight(
 
   const handleBlur = () => {
     if (!target.value.trim()) {
-      // re-show prompt
       removeBubble()
       showBubble('入力してから次へ進んでください。', () => {}, 'thinking', true)
       target.focus()
+      // { once: true } で消えたリスナーを再登録
+      target.addEventListener('blur', handleBlur, { once: true })
       return
     }
     // cleanup
