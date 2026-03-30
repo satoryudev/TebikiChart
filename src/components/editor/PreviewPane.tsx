@@ -16,7 +16,7 @@ const PreviewPane = forwardRef<HTMLIFrameElement, Props>(({ isPlaying, previewUr
   const src = base.includes('?') ? `${base}&preview=1` : `${base}?preview=1`
 
   return (
-    <div className="flex flex-col h-full w-full bg-white">
+    <div id="preview-pane" className="flex flex-col h-full w-full bg-white">
       {/* ヘッダー：URL + 実行/停止 */}
       <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-200 bg-gray-50 flex-shrink-0">
         <span className="text-xs text-gray-400 truncate flex-1" title={base}>

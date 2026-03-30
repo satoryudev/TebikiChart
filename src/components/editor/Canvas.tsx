@@ -17,6 +17,7 @@ import {
 } from '@dnd-kit/sortable'
 import { useEditorStore } from '@/store/editorStore'
 import BlockItem from './BlockItem'
+import EmptyStatePrompt from '@/components/onboarding/EmptyStatePrompt'
 
 export default function Canvas() {
   const { scenario, reorderBlocks } = useEditorStore()
@@ -38,13 +39,9 @@ export default function Canvas() {
   }
 
   return (
-    <div className="flex-1 min-w-0 overflow-y-auto p-4">
+    <div id="editor-canvas" className="flex-1 min-w-0 overflow-y-auto p-4">
       {scenario.blocks.length === 0 ? (
-        <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center text-gray-400">
-          <div className="text-4xl mb-3">📦</div>
-          <p className="font-medium">ブロックをここに追加</p>
-          <p className="text-sm mt-1">左パレットのブロックをクリックして追加できます</p>
-        </div>
+        <EmptyStatePrompt />
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={scenario.blocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>

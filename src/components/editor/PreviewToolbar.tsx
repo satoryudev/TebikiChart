@@ -16,7 +16,11 @@ function blockLabel(b: Block): string {
   }
 }
 
-export default function PreviewToolbar() {
+interface Props {
+  onExportCallback?: () => void
+}
+
+export default function PreviewToolbar({ onExportCallback }: Props) {
   const { scenario, updateScenarioMeta } = useEditorStore()
 
   const handleExport = () => {
@@ -25,10 +29,12 @@ export default function PreviewToolbar() {
     const url = URL.createObjectURL(blob)
     Object.assign(document.createElement('a'), { href: url, download: `${scenario.id}.json` }).click()
     URL.revokeObjectURL(url)
+    updateScenarioMeta({ completedAt: new Date().toISOString() })
+    onExportCallback?.()
   }
 
   return (
-    <div className="bg-white border-b border-gray-200 flex-shrink-0 px-3 py-1.5 space-y-1.5">
+    <div id="preview-toolbar" className="bg-white border-b border-gray-200 flex-shrink-0 px-3 py-1.5 space-y-1.5">
       {/* 行1: 開始ブロック / 総ステップ / 実行・停止 */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 flex-shrink-0">

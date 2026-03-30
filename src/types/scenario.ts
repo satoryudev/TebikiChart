@@ -78,6 +78,8 @@ export interface Scenario {
   totalSteps?: number
   /** プレビューで読み込む対象HTMLのURL。省略時は /demo.html */
   previewUrl?: string
+  /** JSONエクスポート時にセット（完了状態の判定に使用） */
+  completedAt?: string
   createdAt: string
   updatedAt: string
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { Block, BlockType } from '@/types/scenario'
 import { useEditorStore } from '@/store/editorStore'
 
@@ -77,13 +78,21 @@ function createBlock(type: BlockType): Block {
 
 export default function BlockPalette() {
   const addBlock = useEditorStore((s) => s.addBlock)
+  const firstButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    const handler = () => firstButtonRef.current?.focus()
+    document.addEventListener('govguide:focus-palette', handler)
+    return () => document.removeEventListener('govguide:focus-palette', handler)
+  }, [])
 
   return (
-    <aside className="bg-white flex flex-col h-full">
+    <aside id="block-palette" className="bg-white flex flex-col h-full">
       <div className="p-3 flex flex-col gap-2">
-        {PALETTE_ITEMS.map((item) => (
+        {PALETTE_ITEMS.map((item, i) => (
           <button
             key={item.type}
+            ref={i === 0 ? firstButtonRef : undefined}
             onClick={() => addBlock(createBlock(item.type))}
             className={`w-full text-left p-3 rounded-lg border cursor-pointer transition-colors ${item.color}`}
           >
