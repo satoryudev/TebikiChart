@@ -2,11 +2,13 @@
 
 interface Props {
   onResize: (delta: number) => void
+  onDragStart?: () => void
 }
 
-export default function ResizeDivider({ onResize }: Props) {
+export default function ResizeDivider({ onResize, onDragStart }: Props) {
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
+    onDragStart?.()   // startWidth をここで一度だけ記録させる
     const startX = e.clientX
 
     const onMove = (me: MouseEvent) => {
