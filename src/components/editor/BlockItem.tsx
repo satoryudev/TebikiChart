@@ -10,8 +10,7 @@ export const TYPE_META: Record<Block['type'], { label: string; color: string; em
   start: { label: '開始ブロック', color: 'border-l-green-500 bg-green-50', emoji: '▶' },
   end: { label: '終了ブロック', color: 'border-l-gray-400 bg-gray-50', emoji: '⏹' },
   speech: { label: '吹き出し', color: 'border-l-blue-400 bg-blue-50', emoji: '💬' },
-  spotlight: { label: 'スポットライト', color: 'border-l-amber-400 bg-amber-50', emoji: '🔦' },
-  'input-spotlight': { label: '入力スポットライト', color: 'border-l-indigo-400 bg-indigo-50', emoji: '✏️' },
+  'input-spotlight': { label: 'スポットライト', color: 'border-l-indigo-400 bg-indigo-50', emoji: '✏️' },
   branch: { label: '条件分岐', color: 'border-l-red-400 bg-red-50', emoji: '🔀' },
 }
 
@@ -20,7 +19,6 @@ export function getBlockSummary(block: Block): string {
     case 'start': return 'チュートリアルの開始点'
     case 'end': return 'チュートリアルの終了点'
     case 'speech': return block.message.slice(0, 40) + (block.message.length > 40 ? '…' : '')
-    case 'spotlight': return `${block.targetLabel} → ${block.message.slice(0, 30)}`
     case 'input-spotlight': return `${block.targetLabel} → ${block.message.slice(0, 30)}`
     case 'branch': return block.question.slice(0, 40)
   }
@@ -98,7 +96,7 @@ export default function BlockItem({ block, index }: Props) {
       data-block-id={block.id}
       {...attributes}
       {...listeners}
-      onClick={() => setSelectedBlockId(null)}
+      onClick={() => { if (selectedBlockId !== null) setSelectedBlockId(block.id) }}
       onDoubleClick={(e) => { e.stopPropagation(); setSelectedBlockId(block.id) }}
       className={`
         flex items-stretch gap-2 p-3 rounded-lg border-l-4 cursor-grab active:cursor-grabbing outline-none

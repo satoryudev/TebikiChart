@@ -208,6 +208,8 @@ export default function EditorPage() {
     if (collapsed.blockEditor) return
     const handleClick = (e: MouseEvent) => {
       if ((e.target as HTMLElement).closest('[title="ブロック設定を開く"]')) return
+      // ブロックアイテムをクリックした場合はパネルを閉じない（別ブロックへの切り替えを優先）
+      if ((e.target as HTMLElement).closest('[data-block-id]')) return
       if (blockEditorPanelRef.current && !blockEditorPanelRef.current.contains(e.target as Node)) {
         closeBlockEditor()
       }
