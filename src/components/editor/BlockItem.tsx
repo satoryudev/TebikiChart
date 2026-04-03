@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Block } from '@/types/scenario'
@@ -35,6 +36,52 @@ export default function BlockItem({ block, index }: Props) {
   const { selectedBlockId, setSelectedBlockId, removeBlock, activeBlockId } = useEditorStore()
   const isSelected = selectedBlockId === block.id
   const isActive = activeBlockId === block.id
+  const isDeletable = block.type !== 'start' && block.type !== 'end'
+
+  const [pendingDelete, setPendingDelete] = useState(false)
+  const pendingDeleteRef = useRef(false)
+
+  // pendingDelete が変わったら ref も同期
+  useEffect(() => {
+    pendingDeleteRef.current = pendingDelete
+  }, [pendingDelete])
+
+  // 選択解除時に pendingDelete をリセット
+  useEffect(() => {
+    if (!isSelected) setPendingDelete(false)
+  }, [isSelected])
+
+  // Backspace キーで削除確認フロー
+  useEffect(() => {
+    if (!isSelected || !isDeletable) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // input / textarea にフォーカスがある場合は無視
+      const target = e.target as HTMLElement
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      ) return
+
+      if (e.key === 'Backspace') {
+        e.preventDefault()
+        if (pendingDeleteRef.current) {
+          removeBlock(block.id)
+          setPendingDelete(false)
+        } else {
+          setPendingDelete(true)
+        }
+      } else if (e.key === 'Escape') {
+        setPendingDelete(false)
+      } else {
+        setPendingDelete(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isSelected, isDeletable, block.id, removeBlock])
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id })
 
@@ -54,9 +101,15 @@ export default function BlockItem({ block, index }: Props) {
       onClick={() => setSelectedBlockId(null)}
       onDoubleClick={(e) => { e.stopPropagation(); setSelectedBlockId(block.id) }}
       className={`
-        flex items-stretch gap-2 p-3 rounded-lg border-l-4 cursor-grab active:cursor-grabbing
+        flex items-stretch gap-2 p-3 rounded-lg border-l-4 cursor-grab active:cursor-grabbing outline-none
         ${meta.color}
-        ${isActive ? 'ring-2 ring-amber-400 ring-offset-1 animate-pulse shadow-[0_0_12px_3px_rgba(251,191,36,0.5)]' : isSelected ? 'ring-2 ring-blue-500 ring-offset-1' : 'hover:brightness-95'}
+        ${isActive
+          ? 'ring-2 ring-amber-400 ring-offset-1 animate-pulse shadow-[0_0_12px_3px_rgba(251,191,36,0.5)]'
+          : pendingDelete
+            ? 'ring-2 ring-red-500 ring-offset-1'
+            : isSelected
+              ? 'ring-2 ring-blue-500 ring-offset-1'
+              : 'hover:brightness-95'}
         transition-all
       `}
     >
@@ -83,14 +136,16 @@ export default function BlockItem({ block, index }: Props) {
         {/* 下段：ブロックID ＋ 削除ボタン */}
         <div className="flex items-center mt-0.5">
           <p className="text-xs text-gray-400 font-mono truncate flex-1">{block.id}</p>
-          <button
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); removeBlock(block.id) }}
-            className="text-gray-300 hover:text-red-500 transition-colors text-base leading-none flex-shrink-0 ml-1"
-            title="削除"
-          >
-            ×
-          </button>
+          {block.type !== 'start' && block.type !== 'end' && (
+            <button
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); removeBlock(block.id) }}
+              className="text-gray-300 hover:text-red-500 transition-colors text-base leading-none flex-shrink-0 ml-1"
+              title="削除"
+            >
+              ×
+            </button>
+          )}
         </div>
       </div>
     </div>
