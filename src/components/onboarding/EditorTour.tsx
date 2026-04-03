@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 interface TourStep {
   targetId: string;
   message: string;
-  position: 'left' | 'right';
+  position: 'left' | 'right' | 'bottom';
 }
 
 const TOUR_STEPS: TourStep[] = [
@@ -33,7 +33,7 @@ const TOUR_STEPS: TourStep[] = [
   {
     targetId: 'preview-toolbar',
     message: '完成したらここから実行・エクスポートできます。',
-    position: 'left',
+    position: 'bottom',
   },
 ];
 
@@ -92,10 +92,18 @@ function TourOverlay({ onComplete, onSkip }: Omit<Props, 'active'>) {
   const TOOLTIP_W = 256;
   const TOOLTIP_H = 140;
 
-  let tooltipTop = rect.top;
-  let tooltipLeft = currentStep.position === 'right'
-    ? rect.left + rect.width + 16
-    : rect.left - TOOLTIP_W - 16;
+  let tooltipTop: number;
+  let tooltipLeft: number;
+
+  if (currentStep.position === 'bottom') {
+    tooltipTop = rect.top + rect.height + 16;
+    tooltipLeft = rect.left + rect.width / 2 - TOOLTIP_W / 2;
+  } else {
+    tooltipTop = rect.top;
+    tooltipLeft = currentStep.position === 'right'
+      ? rect.left + rect.width + 16
+      : rect.left - TOOLTIP_W - 16;
+  }
 
   // clamp vertical
   if (tooltipTop + TOOLTIP_H > window.innerHeight - 16) {
@@ -120,7 +128,7 @@ function TourOverlay({ onComplete, onSkip }: Omit<Props, 'active'>) {
       {/* Tooltip */}
       <div
         className={`fixed z-50 bg-white rounded-xl shadow-2xl p-4 transition-all duration-200 ${
-          tooltipVisible ? 'opacity-100 translate-x-0' : currentStep.position === 'right' ? 'opacity-0 translate-x-2' : 'opacity-0 -translate-x-2'
+          tooltipVisible ? 'opacity-100 translate-x-0 translate-y-0' : currentStep.position === 'right' ? 'opacity-0 translate-x-2' : currentStep.position === 'bottom' ? 'opacity-0 translate-y-2' : 'opacity-0 -translate-x-2'
         }`}
         style={{ top: tooltipTop, left: tooltipLeft, width: TOOLTIP_W }}
       >

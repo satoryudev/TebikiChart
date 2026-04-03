@@ -32,8 +32,9 @@ export default function BranchSplit({ branch, hasNextBlock = false, onNavigate, 
         <div className="flex-1 flex flex-col items-center px-1">
           <div className="w-px h-3 bg-gray-300" />
           <button
+            data-branch-navigate="true"
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); navigate('yes') }}
+            onClick={() => navigate('yes')}
             className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 border border-green-200
               text-[10px] text-green-600 font-semibold hover:bg-green-100 active:bg-green-200 transition-colors select-none"
           >
@@ -45,8 +46,9 @@ export default function BranchSplit({ branch, hasNextBlock = false, onNavigate, 
         <div className="flex-1 flex flex-col items-center px-1">
           <div className="w-px h-3 bg-gray-300" />
           <button
+            data-branch-navigate="true"
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); navigate('no') }}
+            onClick={() => navigate('no')}
             className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 border border-red-200
               text-[10px] text-red-500 font-semibold hover:bg-red-100 active:bg-red-200 transition-colors select-none"
           >

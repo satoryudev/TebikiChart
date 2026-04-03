@@ -12,7 +12,7 @@ import ScenarioTaskCard from '@/components/dashboard/ScenarioTaskCard'
 
 export default function HomePage() {
   const router = useRouter()
-  const { hasVisited, markVisited } = useOnboarding()
+  const { hasVisited, markVisited, resetOnboarding } = useOnboarding()
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [wizardOpen, setWizardOpen] = useState(false)
   const [welcomeOpen, setWelcomeOpen] = useState(false)
@@ -32,11 +32,9 @@ export default function HomePage() {
   const openWizard = () => setWizardOpen(true)
 
   const handleWizardComplete = ({
-    category,
     title,
     useTemplate,
   }: {
-    category: Scenario['category']
     title: string
     useTemplate: boolean
   }) => {
@@ -44,6 +42,7 @@ export default function HomePage() {
     const now = new Date().toISOString()
     const startId = `block-${Date.now()}-start`
     const endId = `block-${Date.now()}-end`
+    const category: Scenario['category'] = 'moving'
     const scenario: Scenario = useTemplate
       ? { ...DEMO_SCENARIO, id, title, category, createdAt: now, updatedAt: now }
       : {
@@ -140,7 +139,7 @@ export default function HomePage() {
       {/* Welcome modal (first visit or triggered from sidebar) */}
       {(!hasVisited || welcomeOpen) && (
         <WelcomeModal
-          onStart={() => { markVisited(); setWelcomeOpen(false); openWizard() }}
+          onStart={() => { resetOnboarding(); markVisited(); setWelcomeOpen(false); openWizard() }}
           onSkip={() => { markVisited(); setWelcomeOpen(false) }}
         />
       )}

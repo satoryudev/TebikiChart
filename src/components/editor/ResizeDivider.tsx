@@ -10,12 +10,14 @@ export default function ResizeDivider({ onResize, onDragStart }: Props) {
     e.preventDefault()
     onDragStart?.()   // startWidth をここで一度だけ記録させる
     const startX = e.clientX
+    let dragged = false
 
     // ドラッグ中はiframeがマウスイベントを横取りするのを防ぐ
     const iframes = document.querySelectorAll<HTMLElement>('iframe')
     iframes.forEach(f => (f.style.pointerEvents = 'none'))
 
     const onMove = (me: MouseEvent) => {
+      dragged = true
       onResize(me.clientX - startX)
     }
     const onUp = () => {
@@ -24,6 +26,14 @@ export default function ResizeDivider({ onResize, onDragStart }: Props) {
       document.body.style.cursor = ''
       document.body.style.userSelect = ''
       iframes.forEach(f => (f.style.pointerEvents = ''))
+      // ドラッグ後に発火する click がパネルを閉じないようキャプチャで止める
+      if (dragged) {
+        const stopClick = (ce: MouseEvent) => {
+          ce.stopPropagation()
+          document.removeEventListener('click', stopClick, true)
+        }
+        document.addEventListener('click', stopClick, true)
+      }
     }
 
     document.body.style.cursor = 'col-resize'

@@ -184,14 +184,14 @@ export default function EditorPage() {
   // ブロック設定パネル外クリックで閉じる
   useEffect(() => {
     if (collapsed.blockEditor) return
-    const handleMouseDown = (e: MouseEvent) => {
+    const handleClick = (e: MouseEvent) => {
       if ((e.target as HTMLElement).closest('[title="ブロック設定を開く"]')) return
       if (blockEditorPanelRef.current && !blockEditorPanelRef.current.contains(e.target as Node)) {
         closeBlockEditor()
       }
     }
-    document.addEventListener('mousedown', handleMouseDown)
-    return () => document.removeEventListener('mousedown', handleMouseDown)
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
   }, [collapsed.blockEditor, closeBlockEditor])
 
   useEffect(() => {

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 
 const TASK_PREVIEW = [
-  { icon: '📂', text: '手続きカテゴリを選択する' },
   { icon: '📝', text: 'シナリオ名を設定する' },
   { icon: '🚀', text: 'ブロックを追加して公開する' },
 ]

@@ -210,7 +210,7 @@ export default function PreviewToolbar({ onExportCallback }: Props) {
             className="text-xs px-2.5 py-1.5 rounded border border-gray-300 text-gray-600
               hover:bg-gray-50 transition-colors whitespace-nowrap"
           >
-            ダウンロード
+            インポート
           </button>
         </div>
       </div>

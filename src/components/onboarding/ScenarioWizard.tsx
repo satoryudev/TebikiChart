@@ -2,23 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-const CATEGORIES = [
-  { value: 'moving', label: '引越し手続き', emoji: '🏠', desc: '転居届・住所変更の手続き' },
-  { value: 'mynumber', label: 'マイナンバー', emoji: '🪪', desc: 'マイナンバーカードの申請・更新' },
-  { value: 'tax', label: '税金・確定申告', emoji: '💴', desc: '確定申告・税金の納付手続き' },
-  { value: 'childcare', label: '子育て支援', emoji: '👶', desc: '保育所・児童手当の申請' },
-] as const;
-
-type Category = (typeof CATEGORIES)[number]['value'];
-
-const DEFAULT_TITLES: Record<Category, string> = {
-  moving: '引越し手続きシナリオ',
-  mynumber: 'マイナンバー手続きシナリオ',
-  tax: '税金・確定申告シナリオ',
-  childcare: '子育て支援手続きシナリオ',
-};
-
-const STEP_LABELS = ['カテゴリ選択', 'シナリオ名', 'テンプレート']
+const STEP_LABELS = ['シナリオ名', 'テンプレート']
 
 function WizardStepIndicator({ currentStep }: { currentStep: number }) {
   return (
@@ -52,14 +36,13 @@ function WizardStepIndicator({ currentStep }: { currentStep: number }) {
 }
 
 interface Props {
-  onComplete: (data: { category: Category; title: string; useTemplate: boolean }) => void;
+  onComplete: (data: { title: string; useTemplate: boolean }) => void;
   onCancel: () => void;
 }
 
 export default function ScenarioWizard({ onComplete, onCancel }: Props) {
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState(0);
-  const [category, setCategory] = useState<Category | null>(null);
   const [title, setTitle] = useState('');
   const [useTemplate, setUseTemplate] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -69,7 +52,7 @@ export default function ScenarioWizard({ onComplete, onCancel }: Props) {
   }, []);
 
   useEffect(() => {
-    if (step === 1) {
+    if (step === 0) {
       setTimeout(() => titleInputRef.current?.focus(), 50);
     }
   }, [step]);
@@ -78,33 +61,25 @@ export default function ScenarioWizard({ onComplete, onCancel }: Props) {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') handleClose(onCancel);
       if (e.key === 'Enter') {
-        if (step === 0 && category) setStep(1);
-        else if (step === 1 && title.trim()) setStep(2);
-        else if (step === 2) handleFinish();
+        if (step === 0 && title.trim()) setStep(1);
+        else if (step === 1) handleFinish();
       }
     };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [step, category, title, useTemplate]);
+  }, [step, title, useTemplate]);
 
   const handleClose = (action: () => void) => {
     setMounted(false);
     setTimeout(action, 300);
   };
 
-  const handleCategorySelect = (cat: Category) => {
-    setCategory(cat);
-    if (!title || Object.values(DEFAULT_TITLES).includes(title)) {
-      setTitle(DEFAULT_TITLES[cat]);
-    }
-  };
-
   const handleFinish = () => {
-    if (!category || !title.trim()) return;
-    handleClose(() => onComplete({ category, title: title.trim(), useTemplate }));
+    if (!title.trim()) return;
+    handleClose(() => onComplete({ title: title.trim(), useTemplate }));
   };
 
-  const canNext = step === 0 ? !!category : step === 1 ? !!title.trim() : true;
+  const canNext = step === 0 ? !!title.trim() : true;
 
   return (
     <div
@@ -124,30 +99,6 @@ export default function ScenarioWizard({ onComplete, onCancel }: Props) {
         <div className="px-8 pb-6 min-h-[280px]">
           {step === 0 && (
             <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-1">カテゴリを選択</h2>
-              <p className="text-sm text-gray-500 mb-4">手続きの種類を選んでください</p>
-              <div className="grid grid-cols-2 gap-3">
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.value}
-                    onClick={() => handleCategorySelect(cat.value)}
-                    className={`text-left p-4 rounded-xl border-2 transition-all ${
-                      category === cat.value
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="text-2xl mb-1">{cat.emoji}</div>
-                    <p className="text-sm font-semibold text-gray-800">{cat.label}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{cat.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 1 && (
-            <div>
               <h2 className="text-lg font-bold text-gray-900 mb-1">シナリオ名を入力</h2>
               <p className="text-sm text-gray-500 mb-4">わかりやすい名前をつけましょう</p>
               <input
@@ -163,7 +114,7 @@ export default function ScenarioWizard({ onComplete, onCancel }: Props) {
             </div>
           )}
 
-          {step === 2 && (
+          {step === 1 && (
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-1">テンプレートを選択</h2>
               <p className="text-sm text-gray-500 mb-4">デモシナリオで始めると素早く完成イメージを掴めます</p>
@@ -207,15 +158,15 @@ export default function ScenarioWizard({ onComplete, onCancel }: Props) {
             {step === 0 ? 'キャンセル' : '← 戻る'}
           </button>
           <button
-            onClick={() => step < 2 ? setStep(step + 1) : handleFinish()}
+            onClick={() => step < 1 ? setStep(step + 1) : handleFinish()}
             disabled={!canNext}
             className={`disabled:opacity-40 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              step < 2
+              step < 1
                 ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
                 : 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
             }`}
           >
-            {step < 2 ? '次へ →' : '✓ 作成する'}
+            {step < 1 ? '次へ →' : '✓ 作成する'}
           </button>
         </div>
       </div>

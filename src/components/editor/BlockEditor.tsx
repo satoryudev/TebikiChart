@@ -164,7 +164,7 @@ function ValidationPatternSelector({
         </div>
       )}
       <div>
-        <label className="label">正規表現パターン</label>
+        <label className="label">正規表現パターン（オプション）</label>
         <input
           className="input font-mono"
           value={pattern}
@@ -181,6 +181,44 @@ function ValidationPatternSelector({
           placeholder="入力内容が正しくありません"
         />
       </div>
+    </div>
+  )
+}
+
+/** 🎯 ピックボタンのみ（テキスト入力欄なし） */
+function PickOnlyInput({
+  value,
+  onChange,
+  blockId,
+  field,
+}: {
+  value: string
+  onChange: (v: string) => void
+  blockId: string
+  field: string
+}) {
+  const { startPick, pickRequest } = useEditorStore()
+  const isPicking = pickRequest?.blockId === blockId && pickRequest?.field === field
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        title="プレビューで要素をクリックして選択"
+        onClick={() => startPick({ blockId, field, withHash: false })}
+        className={`px-2 py-1 rounded border text-sm transition-colors ${
+          isPicking
+            ? 'bg-amber-400 border-amber-400 text-white'
+            : 'border-gray-200 text-gray-400 hover:border-amber-400 hover:text-amber-500'
+        }`}
+      >
+        🎯
+      </button>
+      {value && (
+        <span className="text-xs font-mono text-gray-500 truncate">{value}</span>
+      )}
+      {!value && (
+        <span className="text-xs text-gray-400">プレビューで input をクリック</span>
+      )}
     </div>
   )
 }
@@ -361,15 +399,15 @@ function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
         <label className="label">説明文</label>
         <textarea className="input min-h-[60px] resize-y" value={block.message} onChange={(e) => updateBlock({ ...block, message: e.target.value })} placeholder="例：郵便番号を入力してください。" />
       </div>
-      <SelectorInput
-        label="対象 input の ID"
-        value={block.targetId}
-        onChange={(v) => updateBlock({ ...block, targetId: v })}
-        blockId={block.id}
-        field="targetId"
-        withHash={false}
-        placeholder="postal-code"
-      />
+      <div>
+        <label className="label">対象ラベル</label>
+        <PickOnlyInput
+          value={block.targetId}
+          onChange={(v) => updateBlock({ ...block, targetId: v })}
+          blockId={block.id}
+          field="targetId"
+        />
+      </div>
       <div>
         <label className="label">ラベル名</label>
         <input className="input" value={block.targetLabel} onChange={(e) => updateBlock({ ...block, targetLabel: e.target.value })} placeholder="例：郵便番号入力欄" />
