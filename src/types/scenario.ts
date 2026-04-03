@@ -1,4 +1,4 @@
-export type BlockType = 'start' | 'end' | 'speech' | 'spotlight' | 'input-spotlight' | 'branch'
+export type BlockType = 'start' | 'end' | 'speech' | 'input-spotlight' | 'branch'
 
 export interface StartBlock {
   id: string
@@ -23,16 +23,7 @@ export interface SpeechBlock {
   nextId: string | null
 }
 
-export interface SpotlightBlock {
-  id: string
-  type: 'spotlight'
-  message: string
-  targetSelector: string
-  targetLabel: string
-  nextId: string | null
-}
-
-/** 機能1: 画面暗転＋スポットライト（入力フォーム特化） */
+/** 機能1: 画面暗転＋スポットライト（入力フォーム／ボタン共用） */
 export interface InputSpotlightBlock {
   id: string
   type: 'input-spotlight'
@@ -40,6 +31,8 @@ export interface InputSpotlightBlock {
   targetId: string
   targetLabel: string
   nextId: string | null
+  /** 対象要素の種別: 'input'（入力フォーム強調）| 'button'（スポットライト強調）。省略時は 'input' */
+  targetType?: 'input' | 'button'
   /** バリデーション設定（省略時はバリデーションなし） */
   validationPattern?: string
   errorMessage?: string
@@ -62,7 +55,6 @@ export type Block =
   | StartBlock
   | EndBlock
   | SpeechBlock
-  | SpotlightBlock
   | InputSpotlightBlock
   | BranchBlock
 

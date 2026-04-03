@@ -7,7 +7,6 @@ import {
   StartBlock,
   EndBlock,
   SpeechBlock,
-  SpotlightBlock,
   InputSpotlightBlock,
   BranchBlock,
 } from '@/types/scenario'
@@ -20,51 +19,6 @@ import {
 } from '@/lib/customDocTypes'
 
 /** セレクタ入力欄 + 🎯 ピックボタン */
-function SelectorInput({
-  label,
-  value,
-  onChange,
-  blockId,
-  field,
-  withHash,
-  placeholder,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  blockId: string
-  field: string
-  withHash: boolean
-  placeholder?: string
-}) {
-  const { startPick, pickRequest } = useEditorStore()
-  const isPicking = pickRequest?.blockId === blockId && pickRequest?.field === field
-  return (
-    <div>
-      <label className="label">{label}</label>
-      <div className="flex gap-1">
-        <input
-          className={`input flex-1 ${isPicking ? 'ring-2 ring-amber-400 border-amber-400' : ''}`}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-        />
-        <button
-          type="button"
-          title="プレビューで要素をクリックして選択"
-          onClick={() => startPick({ blockId, field, withHash })}
-          className={`px-2 rounded border text-sm transition-colors ${
-            isPicking
-              ? 'bg-amber-400 border-amber-400 text-white'
-              : 'border-gray-200 text-gray-400 hover:border-amber-400 hover:text-amber-500'
-          }`}
-        >
-          🎯
-        </button>
-      </div>
-    </div>
-  )
-}
 
 const VALIDATION_PRESETS = [
   { key: 'name',             label: '氏名（ひらがな・漢字）',       pattern: '^[\\u3040-\\u309F\\u30A0-\\u30FF\\u4E00-\\u9FAF\\u3400-\\u4DBF\\s\\u3000]+$', error: '氏名を入力してください' },
@@ -191,11 +145,13 @@ function PickOnlyInput({
   onChange,
   blockId,
   field,
+  hint,
 }: {
   value: string
   onChange: (v: string) => void
   blockId: string
   field: string
+  hint?: string
 }) {
   const { startPick, pickRequest } = useEditorStore()
   const isPicking = pickRequest?.blockId === blockId && pickRequest?.field === field
@@ -217,7 +173,7 @@ function PickOnlyInput({
         <span className="text-xs font-mono text-gray-500 truncate">{value}</span>
       )}
       {!value && (
-        <span className="text-xs text-gray-400">プレビューで input をクリック</span>
+        <span className="text-xs text-gray-400">{hint ?? 'プレビューで input をクリック'}</span>
       )}
     </div>
   )
@@ -227,7 +183,6 @@ const TYPE_EMOJI: Record<Block['type'], string> = {
   start: '▶',
   end: '⏹',
   speech: '💬',
-  spotlight: '🔦',
   'input-spotlight': '✏️',
   branch: '🔀',
 }
@@ -238,7 +193,6 @@ function blockLabel(b: Block): string {
     case 'start': return `${emoji} 開始ブロック`
     case 'end': return `${emoji} 終了ブロック`
     case 'speech': return `${emoji} ${b.message.slice(0, 20)}`
-    case 'spotlight': return `${emoji} ${b.targetLabel}`
     case 'input-spotlight': return `${emoji} ${b.targetLabel}`
     case 'branch': return `${emoji} ${b.question.slice(0, 20)}`
   }
@@ -345,35 +299,23 @@ function SpeechEditor({ block }: { block: SpeechBlock }) {
   )
 }
 
-function SpotlightEditor({ block }: { block: SpotlightBlock }) {
-  const { updateBlock } = useEditorStore()
-  return (
-    <div className="space-y-3">
-      <div>
-        <label className="label">説明文</label>
-        <textarea className="input min-h-[60px] resize-y" value={block.message} onChange={(e) => updateBlock({ ...block, message: e.target.value })} placeholder="例：「申請する」ボタンをクリックしてください。" />
-      </div>
-      <SelectorInput
-        label="CSSセレクタ"
-        value={block.targetSelector}
-        onChange={(v) => updateBlock({ ...block, targetSelector: v })}
-        blockId={block.id}
-        field="targetSelector"
-        withHash={true}
-        placeholder="#submit-btn"
-      />
-      <div>
-        <label className="label">ラベル名</label>
-        <input className="input" value={block.targetLabel} onChange={(e) => updateBlock({ ...block, targetLabel: e.target.value })} placeholder="例：申請するボタン" />
-      </div>
-    </div>
-  )
-}
 
 function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
   const { updateBlock } = useEditorStore()
+  const targetType = block.targetType ?? 'input'
+  const isButton = targetType === 'button'
   const validationEnabled = block.validationPattern !== undefined
   const previewEnabled = block.documentType !== undefined
+
+  const setTargetType = (t: 'input' | 'button') => {
+    // ボタンモードに切り替え時はバリデーション設定を削除
+    if (t === 'button') {
+      const { validationPattern: _, errorMessage: __, ...rest } = block
+      updateBlock({ ...rest, targetType: 'button' } as InputSpotlightBlock)
+    } else {
+      updateBlock({ ...block, targetType: 'input' })
+    }
+  }
 
   const toggleValidation = (enabled: boolean) => {
     if (enabled) {
@@ -395,9 +337,42 @@ function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
 
   return (
     <div className="space-y-3">
+      {/* 対象種別切り替え */}
+      <div>
+        <label className="label">強調方法</label>
+        <div className="flex gap-1 p-1 bg-gray-100 rounded-lg">
+          <button
+            type="button"
+            onClick={() => setTargetType('input')}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+              !isButton ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            ✏️ 入力フォーム
+          </button>
+          <button
+            type="button"
+            onClick={() => setTargetType('button')}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+              isButton ? 'bg-white text-amber-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            🔦 ボタン
+          </button>
+        </div>
+        <p className="mt-1 text-[11px] text-gray-400">
+          {isButton ? 'パルスリング強調＋クリックで次へ進みます' : 'フォーカス強調＋入力確認後に次へ進みます'}
+        </p>
+      </div>
+
       <div>
         <label className="label">説明文</label>
-        <textarea className="input min-h-[60px] resize-y" value={block.message} onChange={(e) => updateBlock({ ...block, message: e.target.value })} placeholder="例：郵便番号を入力してください。" />
+        <textarea
+          className="input min-h-[60px] resize-y"
+          value={block.message}
+          onChange={(e) => updateBlock({ ...block, message: e.target.value })}
+          placeholder={isButton ? '例：「申請する」ボタンをクリックしてください。' : '例：郵便番号を入力してください。'}
+        />
       </div>
       <div>
         <label className="label">対象ラベル</label>
@@ -406,29 +381,37 @@ function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
           onChange={(v) => updateBlock({ ...block, targetId: v })}
           blockId={block.id}
           field="targetId"
+          hint={isButton ? 'プレビューでボタンをクリック' : 'プレビューで input をクリック'}
         />
       </div>
       <div>
         <label className="label">ラベル名</label>
-        <input className="input" value={block.targetLabel} onChange={(e) => updateBlock({ ...block, targetLabel: e.target.value })} placeholder="例：郵便番号入力欄" />
+        <input
+          className="input"
+          value={block.targetLabel}
+          onChange={(e) => updateBlock({ ...block, targetLabel: e.target.value })}
+          placeholder={isButton ? '例：申請するボタン' : '例：郵便番号入力欄'}
+        />
       </div>
 
-      {/* バリデーション設定 */}
-      <div className="border-t border-gray-100 pt-3">
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input type="checkbox" checked={validationEnabled} onChange={(e) => toggleValidation(e.target.checked)} className="w-4 h-4 accent-blue-500" />
-          <span className="text-xs font-semibold text-gray-600">バリデーションを有効にする</span>
-        </label>
-        {validationEnabled && (
-          <div className="mt-3 rounded-lg bg-blue-50 border border-blue-200 p-3">
-            <ValidationPatternSelector
-              pattern={block.validationPattern ?? ''}
-              errorMessage={block.errorMessage ?? ''}
-              onChange={(p, e) => updateBlock({ ...block, validationPattern: p, errorMessage: e })}
-            />
-          </div>
-        )}
-      </div>
+      {/* バリデーション設定（入力フォームのみ） */}
+      {!isButton && (
+        <div className="border-t border-gray-100 pt-3">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" checked={validationEnabled} onChange={(e) => toggleValidation(e.target.checked)} className="w-4 h-4 accent-blue-500" />
+            <span className="text-xs font-semibold text-gray-600">バリデーションを有効にする</span>
+          </label>
+          {validationEnabled && (
+            <div className="mt-3 rounded-lg bg-blue-50 border border-blue-200 p-3">
+              <ValidationPatternSelector
+                pattern={block.validationPattern ?? ''}
+                errorMessage={block.errorMessage ?? ''}
+                onChange={(p, e) => updateBlock({ ...block, validationPattern: p, errorMessage: e })}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 書類プレビュー設定 */}
       <div className="border-t border-gray-100 pt-3">
@@ -613,7 +596,6 @@ export default function BlockEditor() {
         {block.type === 'start' && <StartBlockEditor block={block} />}
         {block.type === 'end' && <EndBlockEditor block={block} />}
         {block.type === 'speech' && <SpeechEditor block={block} />}
-        {block.type === 'spotlight' && <SpotlightEditor block={block} />}
         {block.type === 'input-spotlight' && <InputSpotlightEditor block={block} />}
         {block.type === 'branch' && <BranchEditor block={block} />}
       </div>

@@ -35,16 +35,9 @@ const PALETTE_ITEMS: PaletteItem[] = [
     emoji: '💬',
   },
   {
-    type: 'spotlight',
-    label: 'スポットライト',
-    description: 'ボタンの強調',
-    color: 'border-amber-300 bg-amber-50 hover:bg-amber-100',
-    emoji: '🔦',
-  },
-  {
     type: 'input-spotlight',
-    label: '入力スポットライト',
-    description: '入力フォームの強調',
+    label: 'スポットライト',
+    description: '入力フォーム／ボタンの強調',
     color: 'border-indigo-300 bg-indigo-50 hover:bg-indigo-100',
     emoji: '✏️',
   },

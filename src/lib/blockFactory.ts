@@ -9,8 +9,6 @@ export function createBlock(type: BlockType): Block {
       return { id, type: 'end' }
     case 'speech':
       return { id, type: 'speech', message: '', characterMood: 'normal', nextId: null }
-    case 'spotlight':
-      return { id, type: 'spotlight', message: '', targetSelector: '', targetLabel: '', nextId: null }
     case 'input-spotlight':
       return { id, type: 'input-spotlight', message: '', targetId: '', targetLabel: '', nextId: null }
     case 'branch':

@@ -1,6 +1,6 @@
 import { Scenario, Block } from './types'
 import { showBubble, showBranchBubble, removeBubble } from './bubble'
-import { showOverlay, showSpotlightOverlay, removeOverlay } from './overlay'
+import { showOverlay, removeOverlay } from './overlay'
 import { handleInputSpotlight, removeInputOverlay } from './inputSpotlight'
 import { removeDocumentPreview } from './documentPreview'
 import { initProgressBar, updateProgressBar, completeProgressBar, removeProgressBar } from './progressBar'
@@ -72,14 +72,6 @@ export class ScenarioEngine {
           () => this.next(block.nextId),
           block.characterMood
         )
-        break
-
-      case 'spotlight':
-        showSpotlightOverlay(block.targetSelector, () => {
-          removeBubble()
-          this.next(block.nextId)
-        })
-        showBubble(block.message, () => {}, undefined, true)
         break
 
       case 'input-spotlight':

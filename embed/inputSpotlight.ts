@@ -4,6 +4,7 @@ import { appendSvgMaskOverlay, lockScroll, unlockScroll } from './overlay'
 import { showModal } from './documentPreview'
 
 const OVERLAY_ID = 'tq-input-overlay'
+const RING_ID = 'tq-input-ring'
 const ERROR_TOOLTIP_ID = 'tq-input-error-tooltip'
 
 export function handleInputSpotlight(
@@ -11,6 +12,11 @@ export function handleInputSpotlight(
   onNext: () => void
 ): void {
   removeInputOverlay()
+
+  if (block.targetType === 'button') {
+    handleButtonSpotlight(block, onNext)
+    return
+  }
 
   const target = document.getElementById(block.targetId) as HTMLInputElement | null
   if (!target) {
@@ -167,8 +173,102 @@ export function handleInputSpotlight(
   target.addEventListener('keydown', handleKeydown)
 }
 
+/** 要素の種類に応じた「完了」イベントを返す */
+function getAdvanceTrigger(el: HTMLElement): {
+  eventName: string
+  shouldAdvance: (e: Event) => boolean
+} {
+  const tag = el.tagName.toLowerCase()
+  const type = (el as HTMLInputElement).type?.toLowerCase()
+
+  if (tag === 'input' && (type === 'checkbox' || type === 'radio')) {
+    // チェックを入れたとき（外すときは進まない）
+    return { eventName: 'change', shouldAdvance: (e) => (e.target as HTMLInputElement).checked }
+  }
+  if (tag === 'select') {
+    return { eventName: 'change', shouldAdvance: () => true }
+  }
+  // button / a / input[type=button|submit|reset] / その他
+  return { eventName: 'click', shouldAdvance: () => true }
+}
+
+/** 対象要素をスポットライト強調し、要素の種類に合わせた操作で次へ進む */
+function handleButtonSpotlight(block: InputSpotlightBlock, onNext: () => void): void {
+  const target = document.getElementById(block.targetId) as HTMLElement | null
+  if (!target) {
+    showBubble(block.message, onNext)
+    return
+  }
+
+  target.scrollIntoView({ block: 'center', inline: 'nearest' })
+  lockScroll()
+
+  const drawButtonSpotlight = () => {
+    document.getElementById(OVERLAY_ID)?.remove()
+    document.getElementById(RING_ID)?.remove()
+
+    const r = target.getBoundingClientRect()
+    const pad = 8
+    const x1 = r.left - pad
+    const y1 = r.top - pad
+    const x2 = r.right + pad
+    const y2 = r.bottom + pad
+
+    const el = document.createElement('div')
+    el.id = OVERLAY_ID
+    el.style.cssText = 'position:fixed;inset:0;background:transparent;z-index:99998;pointer-events:all;'
+    appendSvgMaskOverlay(el, x1, y1, x2, y2, 'tq-input-button-mask')
+    document.body.appendChild(el)
+
+    const ring = document.createElement('div')
+    ring.id = RING_ID
+    ring.style.cssText = `
+      position:fixed;left:${x1}px;top:${y1}px;
+      width:${x2 - x1}px;height:${y2 - y1}px;
+      border:3px solid #fbbf24;border-radius:6px;
+      z-index:99999;pointer-events:none;
+      animation:tq-pulse-ring 1.2s ease-out infinite;
+    `
+    document.body.appendChild(ring)
+  }
+
+  drawButtonSpotlight()
+  window.addEventListener('resize', drawButtonSpotlight)
+
+  const origPointerEvents = target.style.pointerEvents
+  const origPosition = target.style.position
+  const origZIndex = target.style.zIndex
+  target.style.pointerEvents = 'auto'
+  target.style.position = target.style.position || 'relative'
+  target.style.zIndex = '99999'
+
+  const cleanup = () => {
+    window.removeEventListener('resize', drawButtonSpotlight)
+    target.style.pointerEvents = origPointerEvents
+    target.style.position = origPosition
+    target.style.zIndex = origZIndex
+    document.getElementById(OVERLAY_ID)?.remove()
+    document.getElementById(RING_ID)?.remove()
+    unlockScroll()
+  }
+
+  const { eventName, shouldAdvance } = getAdvanceTrigger(target)
+
+  const handler = (e: Event) => {
+    if (!shouldAdvance(e)) return
+    target.removeEventListener(eventName, handler)
+    cleanup()
+    removeBubble()
+    onNext()
+  }
+  target.addEventListener(eventName, handler)
+
+  showBubble(block.message, () => {}, undefined, true)
+}
+
 export function removeInputOverlay(): void {
   document.getElementById(OVERLAY_ID)?.remove()
+  document.getElementById(RING_ID)?.remove()
   document.getElementById(ERROR_TOOLTIP_ID)?.remove()
   unlockScroll()
 }
