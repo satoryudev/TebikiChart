@@ -112,7 +112,7 @@ function CanvasPanelContent({ onExportCallback }: { onExportCallback: () => void
 export default function EditorPage() {
   const params = useParams()
   const id = params.id as string
-  const { scenario, setScenario, updateScenarioMeta, pickRequest, applyPick, cancelPick, selectedBlockId, setSelectedBlockId, editorOpenKey, setActiveBlockId } = useEditorStore()
+  const { scenario, setScenario, updateScenarioMeta, pickRequest, applyPick, cancelPick, selectedBlockId, setSelectedBlockId, editorOpenKey, setActiveBlockId, undo, redo } = useEditorStore()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const localBlobRef = useRef<string | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -158,6 +158,28 @@ export default function EditorPage() {
     const s = loadScenario(id)
     if (s) setScenario(s)
   }, [id, setScenario])
+
+  // Ctrl+Z / Cmd+Z → undo、Ctrl+Shift+Z / Cmd+Shift+Z → redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      ) return
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) {
+          redo()
+        } else {
+          undo()
+        }
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [undo, redo])
 
   useEffect(() => {
     if (tourCompleted) return

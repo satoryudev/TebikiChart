@@ -65,12 +65,16 @@ export interface PickRequest {
   withHash: boolean  // true → "#foo" 形式、false → "foo" 形式
 }
 
+const UNDO_LIMIT = 50
+
 interface EditorState {
   scenario: Scenario | null
   selectedBlockId: string | null
   editorOpenKey: number
   pickRequest: PickRequest | null
   activeBlockId: string | null
+  undoStack: Block[][]
+  redoStack: Block[][]
   setScenario: (scenario: Scenario) => void
   setSelectedBlockId: (id: string | null) => void
   setActiveBlockId: (id: string | null) => void
@@ -88,6 +92,8 @@ interface EditorState {
   startPick: (req: PickRequest) => void
   applyPick: (value: string) => void
   cancelPick: () => void
+  undo: () => void
+  redo: () => void
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -96,12 +102,34 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   editorOpenKey: 0,
   pickRequest: null,
   activeBlockId: null,
+  undoStack: [],
+  redoStack: [],
 
   setScenario: (scenario) => set({ scenario, selectedBlockId: null }),
 
   setActiveBlockId: (id) => set({ activeBlockId: id }),
 
   setSelectedBlockId: (id) => set((s) => ({ selectedBlockId: id, editorOpenKey: id !== null ? s.editorOpenKey + 1 : s.editorOpenKey })),
+
+  undo: () => {
+    const { scenario, undoStack, redoStack } = get()
+    if (!scenario || undoStack.length === 0) return
+    const prev = undoStack[undoStack.length - 1]
+    const newUndo = undoStack.slice(0, -1)
+    const updated = { ...scenario, blocks: prev, startBlockId: getStartBlockId(prev), updatedAt: new Date().toISOString() }
+    set({ scenario: updated, undoStack: newUndo, redoStack: [scenario.blocks, ...redoStack] })
+    saveScenario(updated)
+  },
+
+  redo: () => {
+    const { scenario, undoStack, redoStack } = get()
+    if (!scenario || redoStack.length === 0) return
+    const next = redoStack[0]
+    const newRedo = redoStack.slice(1)
+    const updated = { ...scenario, blocks: next, startBlockId: getStartBlockId(next), updatedAt: new Date().toISOString() }
+    set({ scenario: updated, undoStack: [...undoStack, scenario.blocks].slice(-UNDO_LIMIT), redoStack: newRedo })
+    saveScenario(updated)
+  },
 
   updateBlock: (block) => {
     const { scenario } = get()
@@ -113,38 +141,38 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
 
   addBlock: (block) => {
-    const { scenario } = get()
+    const { scenario, undoStack } = get()
     if (!scenario) return
     const blocks = autoLink([...scenario.blocks, block])
     const updated = { ...scenario, blocks, startBlockId: getStartBlockId(blocks), updatedAt: new Date().toISOString() }
-    set({ scenario: updated })
+    set({ scenario: updated, undoStack: [...undoStack, scenario.blocks].slice(-UNDO_LIMIT), redoStack: [] })
     saveScenario(updated)
   },
 
   insertBlockAt: (block, index) => {
-    const { scenario } = get()
+    const { scenario, undoStack } = get()
     if (!scenario) return
     const arr = [...scenario.blocks]
     arr.splice(index, 0, block)
     const blocks = autoLink(arr)
     const updated = { ...scenario, blocks, startBlockId: getStartBlockId(blocks), updatedAt: new Date().toISOString() }
-    set({ scenario: updated })
+    set({ scenario: updated, undoStack: [...undoStack, scenario.blocks].slice(-UNDO_LIMIT), redoStack: [] })
     saveScenario(updated)
   },
 
   addBlocksAt: (newBlocks, index) => {
-    const { scenario } = get()
+    const { scenario, undoStack } = get()
     if (!scenario) return
     const arr = [...scenario.blocks]
     arr.splice(index, 0, ...newBlocks)
     const blocks = autoLink(arr)
     const updated = { ...scenario, blocks, startBlockId: getStartBlockId(blocks), updatedAt: new Date().toISOString() }
-    set({ scenario: updated })
+    set({ scenario: updated, undoStack: [...undoStack, scenario.blocks].slice(-UNDO_LIMIT), redoStack: [] })
     saveScenario(updated)
   },
 
   setBranchChild: (branchId, side, block) => {
-    const { scenario } = get()
+    const { scenario, undoStack } = get()
     if (!scenario) return
     const branchIdx = scenario.blocks.findIndex((b) => b.id === branchId)
     if (branchIdx === -1) return
@@ -156,12 +184,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     arr.splice(branchIdx + 1, 0, block)
     const blocks = autoLink(arr)
     const updated = { ...scenario, blocks, startBlockId: getStartBlockId(blocks), updatedAt: new Date().toISOString() }
-    set({ scenario: updated })
+    set({ scenario: updated, undoStack: [...undoStack, scenario.blocks].slice(-UNDO_LIMIT), redoStack: [] })
     saveScenario(updated)
   },
 
   addBlocksToBranchChain: (branchId, side, newBlocks, index) => {
-    const { scenario } = get()
+    const { scenario, undoStack } = get()
     if (!scenario) return
     const branch = scenario.blocks.find((b) => b.id === branchId) as BranchBlock | undefined
     if (!branch) return
@@ -197,12 +225,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     ]
     const blocks = autoLink(arr)
     const updated = { ...scenario, blocks, startBlockId: getStartBlockId(blocks), updatedAt: new Date().toISOString() }
-    set({ scenario: updated })
+    set({ scenario: updated, undoStack: [...undoStack, scenario.blocks].slice(-UNDO_LIMIT), redoStack: [] })
     saveScenario(updated)
   },
 
   reorderBranchChain: (branchId, side, reorderedChain) => {
-    const { scenario } = get()
+    const { scenario, undoStack } = get()
     if (!scenario) return
     const branch = scenario.blocks.find((b) => b.id === branchId) as BranchBlock | undefined
     if (!branch) return
@@ -235,15 +263,18 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     ]
     const blocks = autoLink(arr)
     const updated = { ...scenario, blocks, startBlockId: getStartBlockId(blocks), updatedAt: new Date().toISOString() }
-    set({ scenario: updated })
+    set({ scenario: updated, undoStack: [...undoStack, scenario.blocks].slice(-UNDO_LIMIT), redoStack: [] })
     saveScenario(updated)
   },
 
   removeBlock: (id) => {
-    const { scenario, selectedBlockId } = get()
+    const { scenario, selectedBlockId, undoStack } = get()
     if (!scenario) return
 
     const blockToRemove = scenario.blocks.find((b) => b.id === id)
+
+    // 開始・終了ブロックは削除不可
+    if (blockToRemove?.type === 'start' || blockToRemove?.type === 'end') return
 
     // 分岐ブロックの場合は yes/no サブツリーも一括削除
     const subtreeIds = blockToRemove?.type === 'branch'
@@ -285,16 +316,18 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({
       scenario: updated,
       selectedBlockId: selectedBlockId === id ? null : selectedBlockId,
+      undoStack: [...undoStack, scenario.blocks].slice(-UNDO_LIMIT),
+      redoStack: [],
     })
     saveScenario(updated)
   },
 
   reorderBlocks: (blocks) => {
-    const { scenario } = get()
+    const { scenario, undoStack } = get()
     if (!scenario) return
     const linked = autoLink(blocks)
     const updated = { ...scenario, blocks: linked, startBlockId: getStartBlockId(linked), updatedAt: new Date().toISOString() }
-    set({ scenario: updated })
+    set({ scenario: updated, undoStack: [...undoStack, scenario.blocks].slice(-UNDO_LIMIT), redoStack: [] })
     saveScenario(updated)
   },
 
