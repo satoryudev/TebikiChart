@@ -136,11 +136,23 @@ export default function EditorPage() {
   const previewWRef = useRef(0)
   const blockEditorWRef = useRef(0)
   const blockEditorPanelRef = useRef<HTMLDivElement>(null)
+  // ブロック設定を開く直前のプレビュー幅を保存（閉じたとき復元するため）
+  const previewWidthBeforeBlockEditorRef = useRef<number | null>(null)
 
   const toggleCollapse = (panel: keyof Collapsed) => {
     // 展開するとき、隣のパネルのstartRefを更新
     setCollapsed((c) => ({ ...c, [panel]: !c[panel] }))
   }
+
+  // ブロック設定を閉じる：プレビューが開いていれば開く前の幅に復元、閉じていればキャンバスが広がる
+  const closeBlockEditor = useCallback(() => {
+    if (!collapsed.preview) {
+      const savedWidth = previewWidthBeforeBlockEditorRef.current
+      setWidths((w) => ({ ...w, preview: savedWidth ?? w.preview + w.blockEditor }))
+      previewWidthBeforeBlockEditorRef.current = null
+    }
+    setCollapsed((c) => ({ ...c, blockEditor: true }))
+  }, [collapsed.preview])
 
   useEffect(() => {
     const s = loadScenario(id)
@@ -156,6 +168,10 @@ export default function EditorPage() {
   // ⋮ ボタンでブロックが選択されたらブロック設定パネルを展開する
   useEffect(() => {
     if (!selectedBlockId) return
+    // ブロック設定が閉じていた場合のみ開く前のプレビュー幅を保存
+    if (collapsed.blockEditor && !collapsed.preview) {
+      previewWidthBeforeBlockEditorRef.current = previewWRef.current
+    }
     setCollapsed((c) => ({ ...c, blockEditor: false }))
     // プレビューが広すぎてブロック設定が隠れる場合は縮小する
     const containerW = containerRef.current?.clientWidth ?? 0
@@ -169,13 +185,14 @@ export default function EditorPage() {
   useEffect(() => {
     if (collapsed.blockEditor) return
     const handleMouseDown = (e: MouseEvent) => {
+      if ((e.target as HTMLElement).closest('[title="ブロック設定を開く"]')) return
       if (blockEditorPanelRef.current && !blockEditorPanelRef.current.contains(e.target as Node)) {
-        setCollapsed((c) => ({ ...c, blockEditor: true }))
+        closeBlockEditor()
       }
     }
     document.addEventListener('mousedown', handleMouseDown)
     return () => document.removeEventListener('mousedown', handleMouseDown)
-  }, [collapsed.blockEditor, setSelectedBlockId])
+  }, [collapsed.blockEditor, closeBlockEditor])
 
   useEffect(() => {
     if (!pickRequest) return
@@ -361,7 +378,7 @@ export default function EditorPage() {
           {/* ── ブロック設定 ── */}
           {!collapsed.blockEditor && (
             <div ref={blockEditorPanelRef} className="flex flex-col overflow-hidden flex-shrink-0" style={{ width: blockEditorW }}>
-              <PanelHeader title="ブロック設定" collapsed={false} onToggle={() => toggleCollapse('blockEditor')} />
+              <PanelHeader title="ブロック設定" collapsed={false} onToggle={closeBlockEditor} />
               <div className="flex-1 overflow-y-auto">
                 <BlockEditor />
               </div>
