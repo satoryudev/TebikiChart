@@ -52,6 +52,7 @@ export default function BlockItem({ block, index }: Props) {
       {...attributes}
       {...listeners}
       onClick={() => setSelectedBlockId(null)}
+      onDoubleClick={(e) => { e.stopPropagation(); setSelectedBlockId(block.id) }}
       className={`
         flex items-stretch gap-2 p-3 rounded-lg border-l-4 cursor-grab active:cursor-grabbing
         ${meta.color}
