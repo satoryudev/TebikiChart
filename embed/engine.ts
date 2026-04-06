@@ -83,8 +83,11 @@ export class ScenarioEngine {
         showOverlay()
         showBranchBubble(
           block.question,
-          () => this.next(block.yesNextId),
-          () => this.next(block.noNextId)
+          block.options.map((opt) => ({
+            label: opt.label,
+            color: opt.color,
+            onSelect: () => this.next(opt.nextId),
+          }))
         )
         break
     }

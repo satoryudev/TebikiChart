@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { useDraggable } from '@dnd-kit/core'
 import { BlockType } from '@/types/scenario'
+import { useBranchView } from './BranchViewContext'
 
 interface PaletteItem {
   type: BlockType
@@ -53,12 +54,14 @@ const PALETTE_ITEMS: PaletteItem[] = [
 interface DraggableItemProps {
   item: PaletteItem
   itemRef?: React.Ref<HTMLDivElement>
+  disabled?: boolean
 }
 
-function DraggablePaletteItem({ item, itemRef }: DraggableItemProps) {
+function DraggablePaletteItem({ item, itemRef, disabled }: DraggableItemProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `palette-${item.type}`,
     data: { source: 'palette', blockType: item.type },
+    disabled,
   })
 
   return (
@@ -70,8 +73,13 @@ function DraggablePaletteItem({ item, itemRef }: DraggableItemProps) {
       }}
       {...attributes}
       {...listeners}
-      tabIndex={0}
-      className={`w-full text-left p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-colors select-none ${item.color} ${isDragging ? 'opacity-40' : ''}`}
+      tabIndex={disabled ? -1 : 0}
+      title={disabled ? '分岐の中には条件分岐を追加できません' : undefined}
+      className={`w-full text-left p-3 rounded-lg border transition-colors select-none ${
+        disabled
+          ? 'border-gray-200 bg-gray-50 opacity-40 cursor-not-allowed'
+          : `${item.color} cursor-grab active:cursor-grabbing`
+      } ${isDragging ? 'opacity-40' : ''}`}
     >
       <div className="flex items-center gap-2 mb-0.5">
         <span>{item.emoji}</span>
@@ -84,6 +92,8 @@ function DraggablePaletteItem({ item, itemRef }: DraggableItemProps) {
 
 export default function BlockPalette() {
   const firstItemRef = useRef<HTMLDivElement>(null)
+  const { currentBranchView } = useBranchView()
+  const inBranchView = currentBranchView !== null
 
   useEffect(() => {
     const handler = () => firstItemRef.current?.focus()
@@ -99,6 +109,7 @@ export default function BlockPalette() {
             key={item.type}
             item={item}
             itemRef={i === 0 ? firstItemRef : undefined}
+            disabled={inBranchView && item.type === 'branch'}
           />
         ))}
       </div>

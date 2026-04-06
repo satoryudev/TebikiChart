@@ -65,11 +65,13 @@ export default function EditorDndProvider({ children }: { children: React.ReactN
     // ── ブランチビュー内の操作 ──
     if (branchView) {
       const branch = scenario?.blocks.find((b) => b.id === branchView.branchId) as BranchBlock | undefined
-      const startId = branch ? (branchView.side === 'yes' ? branch.yesNextId : branch.noNextId) : null
+      const startId = branch?.options.find((o) => o.id === branchView.side)?.nextId ?? null
       const chainBlocks = getBranchChain(scenario?.blocks ?? [], startId)
 
       if (active.data.current?.source === 'palette') {
         const blockType = active.data.current.blockType as BlockType
+        // 分岐の中には分岐を追加不可
+        if (blockType === 'branch') return
         const overId = over.id as string
         const insertIdx = (overId === 'branch-canvas-end' || overId === 'branch-canvas-container')
           ? chainBlocks.length

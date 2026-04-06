@@ -51,12 +51,19 @@ export interface DocumentPreviewBlock {
   nextId: string | null
 }
 
+export interface BranchOption {
+  id: string
+  label: string
+  color: string
+  nextId: string | null
+}
+
 export interface BranchBlock {
   id: string
   type: 'branch'
   question: string
-  yesNextId: string | null
-  noNextId: string | null
+  options: BranchOption[]
+  nextId: string | null
 }
 
 export type Block =

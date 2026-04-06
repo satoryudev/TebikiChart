@@ -21,8 +21,10 @@ export const DEMO_SCENARIO: Scenario = {
       id: 'block-2',
       type: 'branch',
       question: '引越し前後の住所は同じ市区町村ですか？',
-      yesNextId: 'block-3a',
-      noNextId: 'block-3b',
+      options: [
+        { id: 'yes', label: 'はい',   color: 'green', nextId: 'block-3a' },
+        { id: 'no',  label: 'いいえ', color: 'red',   nextId: 'block-3b' },
+      ],
       nextId: 'block-4',
     },
     {
@@ -113,6 +115,33 @@ export function loadScenarios(): Scenario[] {
       const migrated = scenarios.map((s) => ({
         ...s,
         blocks: s.blocks.filter((b) => (b.type as string) !== 'validation'),
+      }))
+      saveScenarios(migrated)
+      return migrated
+    }
+    // migrate legacy yesNextId/noNextId branch blocks to options array
+    const needsBranchMigration = scenarios.some((s) =>
+      s.blocks.some((b) => b.type === 'branch' && !('options' in b))
+    )
+    if (needsBranchMigration) {
+      const migrated = scenarios.map((s) => ({
+        ...s,
+        blocks: s.blocks.map((b) => {
+          if (b.type === 'branch' && !('options' in b)) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const legacy = b as any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const migrated: any = {
+              ...legacy,
+              options: [
+                { id: 'yes', label: 'はい',   color: 'green', nextId: legacy.yesNextId ?? null },
+                { id: 'no',  label: 'いいえ', color: 'red',   nextId: legacy.noNextId ?? null },
+              ],
+            }
+            return migrated
+          }
+          return b
+        }),
       }))
       saveScenarios(migrated)
       return migrated
