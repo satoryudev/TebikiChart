@@ -306,7 +306,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     if (!scenario) return
 
     const blockToRemove = scenario.blocks.find((b) => b.id === id)
-    if (blockToRemove?.type === 'start' || blockToRemove?.type === 'end') return
+    // 先頭の start・末尾の end（固定）は削除不可
+    const isFixedStart = blockToRemove?.type === 'start' && scenario.blocks[0]?.id === id
+    const isFixedEnd = blockToRemove?.type === 'end' && scenario.blocks[scenario.blocks.length - 1]?.id === id
+    if (isFixedStart || isFixedEnd) return
 
     const subtreeIds = blockToRemove?.type === 'branch'
       ? collectBranchSubtreeIds(scenario.blocks, id)
