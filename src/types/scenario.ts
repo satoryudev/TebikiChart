@@ -40,7 +40,7 @@ export interface InputSpotlightBlock {
   targetId: string
   targetLabel: string
   nextId: string | null
-  targetType?: 'input' | 'button'
+  targetType?: 'input' | 'button' | 'element'
   validationPattern?: string
   errorMessage?: string
   documentType?: string

@@ -18,6 +18,11 @@ export function handleInputSpotlight(
     return
   }
 
+  if (block.targetType === 'element') {
+    handleElementSpotlight(block, onNext)
+    return
+  }
+
   const target = document.getElementById(block.targetId) as HTMLInputElement | null
   if (!target) {
     showBubble(block.message, onNext)
@@ -190,6 +195,64 @@ function getAdvanceTrigger(el: HTMLElement): {
   }
   // button / a / input[type=button|submit|reset] / その他
   return { eventName: 'click', shouldAdvance: () => true }
+}
+
+/** 汎用要素をスポットライト強調し、バブルの「次へ」ボタンで進む */
+function handleElementSpotlight(block: InputSpotlightBlock, onNext: () => void): void {
+  const target = document.querySelector(block.targetId) as HTMLElement | null
+  if (!target) {
+    showBubble(block.message, onNext)
+    return
+  }
+
+  target.scrollIntoView({ block: 'center', inline: 'nearest' })
+  lockScroll()
+
+  const drawOverlay = () => {
+    document.getElementById(OVERLAY_ID)?.remove()
+    document.getElementById(RING_ID)?.remove()
+
+    const r = target.getBoundingClientRect()
+    const pad = 8
+    const x1 = r.left - pad
+    const y1 = r.top - pad
+    const x2 = r.right + pad
+    const y2 = r.bottom + pad
+
+    const el = document.createElement('div')
+    el.id = OVERLAY_ID
+    el.style.cssText = 'position:fixed;inset:0;background:transparent;z-index:99998;pointer-events:all;'
+    appendSvgMaskOverlay(el, x1, y1, x2, y2, 'tq-element-mask')
+    document.body.appendChild(el)
+
+    const ring = document.createElement('div')
+    ring.id = RING_ID
+    ring.style.cssText = `
+      position:fixed;left:${x1}px;top:${y1}px;
+      width:${x2 - x1}px;height:${y2 - y1}px;
+      border:3px solid #fbbf24;border-radius:6px;
+      z-index:99999;pointer-events:none;
+      animation:tq-pulse-ring 1.2s ease-out infinite;
+    `
+    document.body.appendChild(ring)
+  }
+
+  drawOverlay()
+  window.addEventListener('resize', drawOverlay)
+
+  const cleanup = () => {
+    window.removeEventListener('resize', drawOverlay)
+    document.getElementById(OVERLAY_ID)?.remove()
+    document.getElementById(RING_ID)?.remove()
+    unlockScroll()
+  }
+
+  // バブルの「次へ」ボタンで進む（要素クリック不要）
+  showBubble(block.message, () => {
+    cleanup()
+    removeBubble()
+    onNext()
+  })
 }
 
 /** 対象要素をスポットライト強調し、要素の種類に合わせた操作で次へ進む */

@@ -148,12 +148,14 @@ function PickOnlyInput({
   blockId,
   field,
   hint,
+  withHash = false,
 }: {
   value: string
   onChange: (v: string) => void
   blockId: string
   field: string
   hint?: string
+  withHash?: boolean
 }) {
   const { startPick, pickRequest } = useEditorStore()
   const isPicking = pickRequest?.blockId === blockId && pickRequest?.field === field
@@ -162,7 +164,7 @@ function PickOnlyInput({
       <button
         type="button"
         title="プレビューで要素をクリックして選択"
-        onClick={() => startPick({ blockId, field, withHash: false })}
+        onClick={() => startPick({ blockId, field, withHash })}
         className={`px-2 py-1 rounded border text-sm transition-colors ${
           isPicking
             ? 'bg-amber-400 border-amber-400 text-white'
@@ -308,14 +310,15 @@ function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
   const { updateBlock } = useEditorStore()
   const targetType = block.targetType ?? 'input'
   const isButton = targetType === 'button'
+  const isElement = targetType === 'element'
   const validationEnabled = block.validationPattern !== undefined
   const previewEnabled = block.documentType !== undefined
 
-  const setTargetType = (t: 'input' | 'button') => {
-    // ボタンモードに切り替え時はバリデーション設定を削除
-    if (t === 'button') {
+  const setTargetType = (t: 'input' | 'button' | 'element') => {
+    // input以外のモードに切り替え時はバリデーション設定を削除
+    if (t === 'button' || t === 'element') {
       const { validationPattern: _, errorMessage: __, ...rest } = block
-      updateBlock({ ...rest, targetType: 'button' } as InputSpotlightBlock)
+      updateBlock({ ...rest, targetType: t } as InputSpotlightBlock)
     } else {
       updateBlock({ ...block, targetType: 'input' })
     }
@@ -349,7 +352,7 @@ function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
             type="button"
             onClick={() => setTargetType('input')}
             className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-              !isButton ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              !isButton && !isElement ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             ✏️ 入力フォーム
@@ -363,9 +366,18 @@ function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
           >
             🔦 ボタン
           </button>
+          <button
+            type="button"
+            onClick={() => setTargetType('element')}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+              isElement ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            📌 エリア
+          </button>
         </div>
         <p className="mt-1 text-[11px] text-gray-400">
-          {isButton ? 'パルスリング強調＋クリックで次へ進みます' : 'フォーカス強調＋入力確認後に次へ進みます'}
+          {isButton ? 'パルスリング強調＋クリックで次へ進みます' : isElement ? 'パルスリング強調＋「次へ」ボタンで進みます' : 'フォーカス強調＋入力確認後に次へ進みます'}
         </p>
       </div>
 
@@ -375,7 +387,7 @@ function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
           className="input min-h-[60px] resize-y"
           value={block.message}
           onChange={(e) => updateBlock({ ...block, message: e.target.value })}
-          placeholder={isButton ? '例：「申請する」ボタンをクリックしてください。' : '例：郵便番号を入力してください。'}
+          placeholder={isButton ? '例：「申請する」ボタンをクリックしてください。' : isElement ? '例：こちらの枠が申請フォームです。' : '例：郵便番号を入力してください。'}
         />
       </div>
       <div>
@@ -385,7 +397,8 @@ function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
           onChange={(v) => updateBlock({ ...block, targetId: v })}
           blockId={block.id}
           field="targetId"
-          hint={isButton ? 'プレビューでボタンをクリック' : 'プレビューで input をクリック'}
+          hint={isButton ? 'プレビューでボタンをクリック' : isElement ? 'プレビューで強調したい領域をクリック' : 'プレビューで input をクリック'}
+          withHash={isElement}
         />
       </div>
       <div>
@@ -394,12 +407,12 @@ function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
           className="input"
           value={block.targetLabel}
           onChange={(e) => updateBlock({ ...block, targetLabel: e.target.value })}
-          placeholder={isButton ? '例：申請するボタン' : '例：郵便番号入力欄'}
+          placeholder={isButton ? '例：申請するボタン' : isElement ? '例：申請フォームの枠' : '例：郵便番号入力欄'}
         />
       </div>
 
       {/* バリデーション設定（入力フォームのみ） */}
-      {!isButton && (
+      {!isButton && !isElement && (
         <div className="border-t border-gray-100 pt-3">
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <input type="checkbox" checked={validationEnabled} onChange={(e) => toggleValidation(e.target.checked)} className="w-4 h-4 accent-blue-500" />

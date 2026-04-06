@@ -30,8 +30,8 @@ export interface InputSpotlightBlock {
   targetId: string
   targetLabel: string
   nextId: string | null
-  /** 対象要素の種別: 'input'（入力フォーム強調）| 'button'（スポットライト強調）。省略時は 'input' */
-  targetType?: 'input' | 'button'
+  /** 対象要素の種別: 'input'（入力フォーム強調）| 'button'（スポットライト強調）| 'element'（汎用要素強調）。省略時は 'input' */
+  targetType?: 'input' | 'button' | 'element'
   validationPattern?: string
   errorMessage?: string
   /** 書類プレビュー設定（省略時はプレビューなし） */
