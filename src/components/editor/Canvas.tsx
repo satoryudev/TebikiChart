@@ -61,10 +61,14 @@ export default function Canvas() {
       ) : (
         <SortableContext items={mainBlocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
           <div className="flex flex-col">
-            {mainBlocks.map((block, i) => (
+            {mainBlocks.map((block, i) => {
+              const isFixed =
+                (i === 0 && block.type === 'start') ||
+                (i === mainBlocks.length - 1 && block.type === 'end')
+              return (
               <Fragment key={block.id}>
                 {overBlockId === block.id && <DropLine />}
-                <BlockItem block={block} index={scenario.blocks.indexOf(block)} disableDrag={block.type === 'start'} />
+                <BlockItem block={block} index={scenario.blocks.indexOf(block)} disableDrag={isFixed} isFixed={isFixed} />
                 {block.type === 'branch' ? (
                   <BranchSplit
                     branch={block as BranchBlock}
@@ -74,7 +78,8 @@ export default function Canvas() {
                   i < mainBlocks.length - 1 && <BlockConnector fromBlock={block} />
                 )}
               </Fragment>
-            ))}
+              )
+            })}
             <AppendDropZone />
           </div>
         </SortableContext>

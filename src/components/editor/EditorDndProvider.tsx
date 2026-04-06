@@ -122,20 +122,26 @@ export default function EditorDndProvider({ children }: { children: React.ReactN
         : [createBlock(blockType)]
       const currentBlocks = scenario?.blocks ?? []
       const hasStartBlock = currentBlocks[0]?.type === 'start'
+      const hasFixedEnd = currentBlocks[currentBlocks.length - 1]?.type === 'end'
       const rawIdx = (overId === 'canvas-end' || overId === 'canvas-container')
         ? currentBlocks.length
         : (() => { const i = currentBlocks.findIndex((b) => b.id === overId); return i === -1 ? currentBlocks.length : i })()
-      // start ブロックより上には追加不可
-      const insertIdx = hasStartBlock && rawIdx === 0 ? 1 : rawIdx
+      // start より上・固定 end の下には追加不可
+      let insertIdx = rawIdx
+      if (hasStartBlock && insertIdx === 0) insertIdx = 1
+      if (hasFixedEnd && insertIdx >= currentBlocks.length) insertIdx = currentBlocks.length - 1
       addBlocksAt(newBlocks, insertIdx)
     } else {
-      // キャンバス内の並び替え（start ブロックは移動不可）
+      // キャンバス内の並び替え（固定 start・固定 end は移動不可）
       const blocks = scenario?.blocks ?? []
       const oldIdx = blocks.findIndex((b) => b.id === active.id)
       const newIdx = blocks.findIndex((b) => b.id === over.id)
       const movingBlock = blocks[oldIdx]
-      if (movingBlock?.type === 'start') return
+      const isFixedStart = movingBlock?.type === 'start' && oldIdx === 0
+      const isFixedEnd = movingBlock?.type === 'end' && oldIdx === blocks.length - 1
+      if (isFixedStart || isFixedEnd) return
       if (newIdx === 0 && blocks[0]?.type === 'start') return
+      if (newIdx === blocks.length - 1 && blocks[blocks.length - 1]?.type === 'end') return
       if (active.id !== over.id && oldIdx !== -1 && newIdx !== -1) {
         reorderBlocks(arrayMove(blocks, oldIdx, newIdx))
       }

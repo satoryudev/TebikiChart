@@ -30,14 +30,16 @@ interface Props {
   block: Block
   index: number
   disableDrag?: boolean
+  isFixed?: boolean
 }
 
-export default function BlockItem({ block, index, disableDrag = false }: Props) {
+export default function BlockItem({ block, index, disableDrag = false, isFixed = false }: Props) {
   const meta = TYPE_META[block.type] ?? { label: block.type, color: 'border-l-gray-400 bg-gray-50', emoji: '?' }
   const { selectedBlockId, setSelectedBlockId, removeBlock, activeBlockId } = useEditorStore()
   const isSelected = selectedBlockId === block.id
   const isActive = activeBlockId === block.id
-  const isDeletable = block.type !== 'start' && block.type !== 'end'
+  // 固定ブロックは削除不可。それ以外は start 以外すべて削除可能
+  const isDeletable = !isFixed && block.type !== 'start'
 
   // Issue #23: useEffectでの同期を廃止し、state更新と同時にrefを直接更新する
   const [pendingDelete, setPendingDelete] = useState(false)
@@ -102,8 +104,8 @@ export default function BlockItem({ block, index, disableDrag = false }: Props) 
       data-block-id={block.id}
       {...attributes}
       {...(disableDrag ? {} : listeners)}
-      onClick={() => { if (selectedBlockId !== null) setSelectedBlockId(block.id) }}
-      onDoubleClick={(e) => { e.stopPropagation(); setSelectedBlockId(block.id) }}
+      onClick={() => { if (!isFixed && selectedBlockId !== null) setSelectedBlockId(block.id) }}
+      onDoubleClick={(e) => { if (isFixed) return; e.stopPropagation(); setSelectedBlockId(block.id) }}
       className={`
         flex items-stretch gap-2 p-3 rounded-lg border-l-4 ${disableDrag ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} outline-none
         ${meta.color}
@@ -124,14 +126,16 @@ export default function BlockItem({ block, index, disableDrag = false }: Props) 
           <span className="text-xs">{meta.emoji}</span>
           <span className="text-xs font-semibold text-gray-600">{meta.label}</span>
           <span className="text-xs text-gray-400 ml-auto mr-1">#{index + 1}</span>
-          <button
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); setSelectedBlockId(block.id) }}
-            className="text-gray-400 hover:text-gray-700 transition-colors leading-none flex-shrink-0 px-0.5"
-            title="ブロック設定を開く"
-          >
-            ⋮
-          </button>
+          {!isFixed && (
+            <button
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); setSelectedBlockId(block.id) }}
+              className="text-gray-400 hover:text-gray-700 transition-colors leading-none flex-shrink-0 px-0.5"
+              title="ブロック設定を開く"
+            >
+              ⋮
+            </button>
+          )}
         </div>
 
         {/* サマリー */}
@@ -140,7 +144,7 @@ export default function BlockItem({ block, index, disableDrag = false }: Props) 
         {/* 下段：ブロックID ＋ 削除ボタン */}
         <div className="flex items-center mt-0.5">
           <p className="text-xs text-gray-400 font-mono truncate flex-1">{block.id}</p>
-          {block.type !== 'start' && block.type !== 'end' && (
+          {isDeletable && (
             <button
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); removeBlock(block.id) }}
