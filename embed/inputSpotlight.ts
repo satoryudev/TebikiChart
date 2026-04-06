@@ -240,8 +240,19 @@ function handleElementSpotlight(block: InputSpotlightBlock, onNext: () => void):
   drawOverlay()
   window.addEventListener('resize', drawOverlay)
 
+  // ターゲット要素をオーバーレイより前面に出して操作可能にする
+  const origPointerEvents = target.style.pointerEvents
+  const origPosition = target.style.position
+  const origZIndex = target.style.zIndex
+  target.style.pointerEvents = 'auto'
+  target.style.position = target.style.position || 'relative'
+  target.style.zIndex = '99999'
+
   const cleanup = () => {
     window.removeEventListener('resize', drawOverlay)
+    target.style.pointerEvents = origPointerEvents
+    target.style.position = origPosition
+    target.style.zIndex = origZIndex
     document.getElementById(OVERLAY_ID)?.remove()
     document.getElementById(RING_ID)?.remove()
     unlockScroll()
