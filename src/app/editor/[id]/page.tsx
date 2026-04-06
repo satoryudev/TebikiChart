@@ -19,6 +19,7 @@ import EditorTour from '@/components/onboarding/EditorTour'
 import { getScenarioStatus, ScenarioStatus } from '@/lib/scenarioUtils'
 import { Scenario } from '@/types/scenario'
 import { findBranchStackForBlock } from '@/lib/branchChain'
+import ValidationBadge from '@/components/editor/ValidationBadge'
 
 const PANEL_MIN = 160
 const COLLAPSED_W = 32
@@ -348,8 +349,9 @@ export default function EditorPage() {
           </select>
         </div>
 
-        {/* Right: status badge */}
-        <div className="flex items-center gap-4 flex-shrink-0 ml-4">
+        {/* Right: status badge + validation */}
+        <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+          <ValidationBadge />
           <StatusBadge scenario={scenario} />
         </div>
       </header>
