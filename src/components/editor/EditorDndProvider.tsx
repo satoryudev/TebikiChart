@@ -121,9 +121,12 @@ export default function EditorDndProvider({ children }: { children: React.ReactN
         ? [...createBranchGroup()]
         : [createBlock(blockType)]
       const currentBlocks = scenario?.blocks ?? []
-      const insertIdx = (overId === 'canvas-end' || overId === 'canvas-container')
+      const hasStartBlock = currentBlocks[0]?.type === 'start'
+      const rawIdx = (overId === 'canvas-end' || overId === 'canvas-container')
         ? currentBlocks.length
         : (() => { const i = currentBlocks.findIndex((b) => b.id === overId); return i === -1 ? currentBlocks.length : i })()
+      // start ブロックより上には追加不可
+      const insertIdx = hasStartBlock && rawIdx === 0 ? 1 : rawIdx
       addBlocksAt(newBlocks, insertIdx)
     } else {
       // キャンバス内の並び替え（start ブロックは移動不可）
