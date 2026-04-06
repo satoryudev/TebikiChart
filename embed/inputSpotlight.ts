@@ -199,7 +199,7 @@ function getAdvanceTrigger(el: HTMLElement): {
 
 /** 汎用要素をスポットライト強調し、バブルの「次へ」ボタンで進む */
 function handleElementSpotlight(block: InputSpotlightBlock, onNext: () => void): void {
-  const target = document.getElementById(block.targetId) as HTMLElement | null
+  const target = document.querySelector(block.targetId) as HTMLElement | null
   if (!target) {
     showBubble(block.message, onNext)
     return

@@ -148,12 +148,14 @@ function PickOnlyInput({
   blockId,
   field,
   hint,
+  withHash = false,
 }: {
   value: string
   onChange: (v: string) => void
   blockId: string
   field: string
   hint?: string
+  withHash?: boolean
 }) {
   const { startPick, pickRequest } = useEditorStore()
   const isPicking = pickRequest?.blockId === blockId && pickRequest?.field === field
@@ -162,7 +164,7 @@ function PickOnlyInput({
       <button
         type="button"
         title="プレビューで要素をクリックして選択"
-        onClick={() => startPick({ blockId, field, withHash: false })}
+        onClick={() => startPick({ blockId, field, withHash })}
         className={`px-2 py-1 rounded border text-sm transition-colors ${
           isPicking
             ? 'bg-amber-400 border-amber-400 text-white'
@@ -371,7 +373,7 @@ function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
               isElement ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            🖼 要素
+            📌 エリア
           </button>
         </div>
         <p className="mt-1 text-[11px] text-gray-400">
@@ -395,7 +397,8 @@ function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
           onChange={(v) => updateBlock({ ...block, targetId: v })}
           blockId={block.id}
           field="targetId"
-          hint={isButton ? 'プレビューでボタンをクリック' : isElement ? 'プレビューで要素をクリック' : 'プレビューで input をクリック'}
+          hint={isButton ? 'プレビューでボタンをクリック' : isElement ? 'プレビューで強調したい領域をクリック' : 'プレビューで input をクリック'}
+          withHash={isElement}
         />
       </div>
       <div>
