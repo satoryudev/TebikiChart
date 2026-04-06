@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useState } from 'react'
 
 export interface BranchView {
   branchId: string
-  side: 'yes' | 'no'
+  side: string  // option id ('yes', 'no', or custom)
 }
 
 interface BranchViewContextValue {

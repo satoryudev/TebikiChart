@@ -9,6 +9,8 @@ import {
   SpeechBlock,
   InputSpotlightBlock,
   BranchBlock,
+  BranchOptionColor,
+  BRANCH_OPTION_COLOR_CLASSES,
 } from '@/types/scenario'
 import {
   loadCustomDocTypes,
@@ -183,6 +185,7 @@ const TYPE_EMOJI: Record<Block['type'], string> = {
   start: '▶',
   end: '⏹',
   speech: '💬',
+  spotlight: '🔦',
   'input-spotlight': '✏️',
   branch: '🔀',
 }
@@ -193,6 +196,7 @@ function blockLabel(b: Block): string {
     case 'start': return `${emoji} 開始ブロック`
     case 'end': return `${emoji} 終了ブロック`
     case 'speech': return `${emoji} ${b.message.slice(0, 20)}`
+    case 'spotlight': return `${emoji} ${b.targetLabel}`
     case 'input-spotlight': return `${emoji} ${b.targetLabel}`
     case 'branch': return `${emoji} ${b.question.slice(0, 20)}`
   }
@@ -546,28 +550,94 @@ function DocTypeSelector({
   )
 }
 
+const OPTION_DEFAULT_COLORS: BranchOptionColor[] = [
+  'orange', 'amber', 'yellow', 'lime', 'cyan', 'indigo', 'purple', 'pink', 'white',
+]
+
 function BranchEditor({ block }: { block: BranchBlock }) {
-  const { updateBlock, scenario } = useEditorStore()
-  const blocks = scenario?.blocks ?? []
+  const { updateBlock, addBranchOption, removeBranchOption } = useEditorStore()
+
+  const handleLabelChange = (optionId: string, label: string) => {
+    updateBlock({ ...block, options: block.options.map((o) => o.id === optionId ? { ...o, label } : o) })
+  }
+
+  const handleColorChange = (optionId: string, color: BranchOptionColor) => {
+    updateBlock({ ...block, options: block.options.map((o) => o.id === optionId ? { ...o, color } : o) })
+  }
+
+  const handleAddOption = () => {
+    if (block.options.length >= 5) return
+    const usedColors = new Set(block.options.map((o) => o.color))
+    const color = OPTION_DEFAULT_COLORS.find((c) => !usedColors.has(c)) ?? 'blue'
+    const id = `opt-${Math.random().toString(36).slice(2, 7)}`
+    addBranchOption(block.id, { id, label: `選択肢${block.options.length + 1}`, color, nextId: null })
+  }
+
   return (
     <div className="space-y-3">
       <div>
         <label className="label">質問文</label>
-        <textarea className="input min-h-[60px] resize-y" value={block.question} onChange={(e) => updateBlock({ ...block, question: e.target.value })} placeholder="例：同じ市区町村内への引越しですか？" />
+        <textarea
+          className="input min-h-[60px] resize-y"
+          value={block.question}
+          onChange={(e) => updateBlock({ ...block, question: e.target.value })}
+          placeholder="例：同じ市区町村内への引越しですか？"
+        />
       </div>
+
       <div>
-        <label className="label">はい → 次のブロック</label>
-        <select className="input" value={block.yesNextId ?? ''} onChange={(e) => updateBlock({ ...block, yesNextId: e.target.value || null })}>
-          <option value="">（終了）</option>
-          {nextOptions(blocks, block.id).map((b) => <option key={b.id} value={b.id}>{blockLabel(b)}</option>)}
-        </select>
-      </div>
-      <div>
-        <label className="label">いいえ → 次のブロック</label>
-        <select className="input" value={block.noNextId ?? ''} onChange={(e) => updateBlock({ ...block, noNextId: e.target.value || null })}>
-          <option value="">（終了）</option>
-          {nextOptions(blocks, block.id).map((b) => <option key={b.id} value={b.id}>{blockLabel(b)}</option>)}
-        </select>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="label mb-0">選択肢（{block.options.length}/5）</label>
+          {block.options.length < 5 && (
+            <button
+              type="button"
+              onClick={handleAddOption}
+              className="text-[11px] text-blue-500 hover:text-blue-700 font-semibold transition-colors"
+            >
+              ＋ 追加
+            </button>
+          )}
+        </div>
+        <div className="space-y-2">
+          {block.options.map((opt) => (
+            <div key={opt.id} className="rounded-lg border border-gray-200 p-2 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <input
+                  className="input flex-1 py-1 text-sm"
+                  value={opt.label}
+                  onChange={(e) => handleLabelChange(opt.id, e.target.value)}
+                  placeholder="選択肢名"
+                />
+                {block.options.length > 2 && (
+                  <button
+                    type="button"
+                    onClick={() => removeBranchOption(block.id, opt.id)}
+                    className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none flex-shrink-0"
+                    title="削除"
+                  >×</button>
+                )}
+              </div>
+              {/* 12色カラーピッカー */}
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
+                {(Object.keys(BRANCH_OPTION_COLOR_CLASSES) as BranchOptionColor[]).map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => handleColorChange(opt.id, color)}
+                    title={BRANCH_OPTION_COLOR_CLASSES[color].label}
+                    className={`w-5 h-5 rounded-full transition-all flex-shrink-0 ${
+                      color === 'white' ? 'bg-white border border-gray-300' : BRANCH_OPTION_COLOR_CLASSES[color].swatch
+                    } ${
+                      opt.color === color
+                        ? 'ring-2 ring-offset-1 ring-gray-500 scale-110'
+                        : 'hover:ring-1 hover:ring-offset-1 hover:ring-gray-400'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

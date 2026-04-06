@@ -210,7 +210,9 @@ export default function EditorPage() {
       if ((e.target as HTMLElement).closest('[title="ブロック設定を開く"]')) return
       // ブロックアイテムをクリックした場合はパネルを閉じない（別ブロックへの切り替えを優先）
       if ((e.target as HTMLElement).closest('[data-block-id]')) return
-      if (blockEditorPanelRef.current && !blockEditorPanelRef.current.contains(e.target as Node)) {
+      // composedPath を使うことで、クリック後に DOM から削除された要素（選択肢の×ボタン等）でも正しく判定できる
+      const path = e.composedPath()
+      if (blockEditorPanelRef.current && !path.includes(blockEditorPanelRef.current)) {
         closeBlockEditor()
       }
     }

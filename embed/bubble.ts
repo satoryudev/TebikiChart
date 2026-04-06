@@ -158,10 +158,24 @@ export function showBubble(
   }
 }
 
+const COLOR_MAP: Record<string, { bg: string; text: string }> = {
+  green:  { bg: '#22c55e', text: 'white' },
+  red:    { bg: '#ef4444', text: 'white' },
+  blue:   { bg: '#3b82f6', text: 'white' },
+  yellow: { bg: '#eab308', text: 'white' },
+  purple: { bg: '#a855f7', text: 'white' },
+  orange: { bg: '#f97316', text: 'white' },
+  pink:   { bg: '#ec4899', text: 'white' },
+  cyan:   { bg: '#06b6d4', text: 'white' },
+  amber:  { bg: '#f59e0b', text: 'white' },
+  indigo: { bg: '#6366f1', text: 'white' },
+  lime:   { bg: '#84cc16', text: 'white' },
+  white:  { bg: '#f9fafb', text: '#374151' },
+}
+
 export function showBranchBubble(
   question: string,
-  onYes: () => void,
-  onNo: () => void
+  options: { label: string; color: string; onSelect: () => void }[]
 ): void {
   removeBubble()
 
@@ -204,30 +218,24 @@ export function showBranchBubble(
   type()
 
   const btnRow = document.createElement('div')
-  btnRow.style.cssText = 'display:flex;gap:8px;'
+  btnRow.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;'
 
-  const yesBtn = document.createElement('button')
-  yesBtn.textContent = 'はい ✓'
-  yesBtn.style.cssText = `
-    background:#22c55e;color:white;border:none;
-    padding:6px 18px;border-radius:8px;font-size:13px;
-    cursor:pointer;font-weight:600;flex:1;
-    transition:background 0.15s;
-  `
-  yesBtn.onclick = () => { removeBubble(); onYes() }
+  for (const opt of options) {
+    const c = COLOR_MAP[opt.color] ?? { bg: '#6b7280', text: 'white' }
+    const btn = document.createElement('button')
+    btn.textContent = opt.label
+    btn.style.cssText = `
+      background:${c.bg};color:${c.text};border:none;
+      padding:6px 18px;border-radius:8px;font-size:13px;
+      cursor:pointer;font-weight:600;flex:1;min-width:80px;
+      transition:opacity 0.15s;
+    `
+    btn.onmouseover = () => { btn.style.opacity = '0.85' }
+    btn.onmouseout  = () => { btn.style.opacity = '1' }
+    btn.onclick = () => { removeBubble(); opt.onSelect() }
+    btnRow.appendChild(btn)
+  }
 
-  const noBtn = document.createElement('button')
-  noBtn.textContent = 'いいえ ✗'
-  noBtn.style.cssText = `
-    background:#ef4444;color:white;border:none;
-    padding:6px 18px;border-radius:8px;font-size:13px;
-    cursor:pointer;font-weight:600;flex:1;
-    transition:background 0.15s;
-  `
-  noBtn.onclick = () => { removeBubble(); onNo() }
-
-  btnRow.appendChild(yesBtn)
-  btnRow.appendChild(noBtn)
   textEl.appendChild(msgEl)
   textEl.appendChild(btnRow)
 

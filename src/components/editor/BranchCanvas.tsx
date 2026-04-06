@@ -3,7 +3,7 @@
 import { Fragment, useContext, useEffect } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { BranchBlock } from '@/types/scenario'
+import { BranchBlock, BRANCH_OPTION_COLOR_CLASSES } from '@/types/scenario'
 import { useEditorStore } from '@/store/editorStore'
 import { getBranchChain } from '@/lib/branchChain'
 import { useBranchView } from './BranchViewContext'
@@ -60,7 +60,7 @@ export default function BranchCanvas() {
   const branch = scenario.blocks.find((b) => b.id === currentBranchView.branchId) as BranchBlock | undefined
   if (!branch) return null
 
-  const startId = currentBranchView.side === 'yes' ? branch.yesNextId : branch.noNextId
+  const startId = branch.options.find((o) => o.id === currentBranchView.side)?.nextId ?? null
   const chainBlocks = getBranchChain(scenario.blocks, startId)
 
   // 現在の分岐に nextId がない場合はスタックを遡って最初に見つかる合流先を使う
@@ -93,30 +93,24 @@ export default function BranchCanvas() {
         </button>
         {branchStack.map((entry, i) => {
           const entryBranch = scenario.blocks.find((b) => b.id === entry.branchId) as BranchBlock | undefined
-          const sideLabel = entry.side === 'yes' ? 'はい' : 'いいえ'
+          const option = entryBranch?.options.find((o) => o.id === entry.side)
+          const sideLabel = option?.label ?? entry.side
+          const cls = option ? BRANCH_OPTION_COLOR_CLASSES[option.color] : BRANCH_OPTION_COLOR_CLASSES.green
           const isLast = i === branchStack.length - 1
           return (
             <Fragment key={`${entry.branchId}-${entry.side}`}>
               <span className="text-gray-300 text-xs flex-shrink-0">›</span>
               {isLast ? (
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${
-                  entry.side === 'yes'
-                    ? 'bg-green-50 border-green-200 text-green-600'
-                    : 'bg-red-50 border-red-200 text-red-500'
-                }`}>
-                  {entry.side === 'yes' ? '✓' : '✗'} {sideLabel}
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${cls.bg} ${cls.border} ${cls.text}`}>
+                  {sideLabel}
                 </span>
               ) : (
                 <button
                   onClick={() => truncateBranchStack(i + 1)}
-                  className={`text-xs font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 transition-opacity hover:opacity-70 ${
-                    entry.side === 'yes'
-                      ? 'bg-green-50 border-green-200 text-green-600'
-                      : 'bg-red-50 border-red-200 text-red-500'
-                  }`}
+                  className={`text-xs font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 transition-opacity hover:opacity-70 ${cls.bg} ${cls.border} ${cls.text}`}
                   title={entryBranch?.question}
                 >
-                  {entry.side === 'yes' ? '✓' : '✗'} {sideLabel}
+                  {sideLabel}
                 </button>
               )}
               {isLast && entryBranch && (
