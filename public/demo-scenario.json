@@ -75,17 +75,19 @@
     },
     {
       "id": "block-9",
-      "type": "spotlight",
+      "type": "input-spotlight",
+      "targetType": "button",
       "message": "注意事項を確認し、同意チェックボックスにチェックを入れてください。",
-      "targetSelector": "#consent-check",
+      "targetId": "consent-check",
       "targetLabel": "同意チェックボックス",
       "nextId": "block-10"
     },
     {
       "id": "block-10",
-      "type": "spotlight",
+      "type": "input-spotlight",
+      "targetType": "button",
       "message": "最後に「申請する」ボタンを押して申請を完了させてください！",
-      "targetSelector": "#submit-btn",
+      "targetId": "submit-btn",
       "targetLabel": "申請するボタン",
       "nextId": "block-end"
     },

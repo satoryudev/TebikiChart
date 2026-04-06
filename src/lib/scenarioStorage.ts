@@ -1,4 +1,4 @@
-import { Scenario } from '@/types/scenario'
+import { Scenario, Block } from '@/types/scenario'
 
 const STORAGE_KEY = 'tetsuzuki_quest_scenarios'
 
@@ -79,17 +79,19 @@ export const DEMO_SCENARIO: Scenario = {
     },
     {
       id: 'block-9',
-      type: 'spotlight',
+      type: 'input-spotlight',
+      targetType: 'button',
       message: '注意事項を確認し、同意チェックボックスにチェックを入れてください。',
-      targetSelector: '#consent-check',
+      targetId: 'consent-check',
       targetLabel: '同意チェックボックス',
       nextId: 'block-10',
     },
     {
       id: 'block-10',
-      type: 'spotlight',
+      type: 'input-spotlight',
+      targetType: 'button',
       message: '最後に「申請する」ボタンを押して申請を完了させてください！',
-      targetSelector: '#submit-btn',
+      targetId: 'submit-btn',
       targetLabel: '申請するボタン',
       nextId: 'block-end',
     },
@@ -97,6 +99,30 @@ export const DEMO_SCENARIO: Scenario = {
   ],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
+}
+
+// Issue #4: LocalStorageデータのランタイムバリデーション（依存追加なし）
+const VALID_BLOCK_TYPES = new Set(['start', 'end', 'speech', 'input-spotlight', 'branch'])
+const VALID_CATEGORIES = new Set(['moving', 'mynumber', 'tax', 'childcare'])
+
+function isValidBlock(b: unknown): b is Block {
+  if (!b || typeof b !== 'object') return false
+  const block = b as Record<string, unknown>
+  return typeof block.id === 'string' && VALID_BLOCK_TYPES.has(block.type as string)
+}
+
+function isValidScenario(s: unknown): s is Scenario {
+  if (!s || typeof s !== 'object') return false
+  const sc = s as Record<string, unknown>
+  return (
+    typeof sc.id === 'string' &&
+    typeof sc.title === 'string' &&
+    VALID_CATEGORIES.has(sc.category as string) &&
+    Array.isArray(sc.blocks) &&
+    (sc.blocks as unknown[]).every(isValidBlock) &&
+    typeof sc.createdAt === 'string' &&
+    typeof sc.updatedAt === 'string'
+  )
 }
 
 export function loadScenarios(): Scenario[] {
@@ -107,17 +133,35 @@ export function loadScenarios(): Scenario[] {
       saveScenarios([DEMO_SCENARIO])
       return [DEMO_SCENARIO]
     }
-    const scenarios = JSON.parse(raw) as Scenario[]
-    const hasValidation = scenarios.some((s) => s.blocks.some((b) => (b.type as string) === 'validation'))
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) {
+      console.error('[GovGuide] Invalid scenario storage format')
+      return [DEMO_SCENARIO]
+    }
+
+    // Issue #4: 不正なシナリオをフィルタリング
+    const valid = parsed.filter((s) => {
+      if (!isValidScenario(s)) {
+        console.warn('[GovGuide] Skipping invalid scenario:', s)
+        return false
+      }
+      return true
+    }) as Scenario[]
+
+    if (valid.length === 0) return [DEMO_SCENARIO]
+
+    // validationブロック型の移行
+    const hasValidation = valid.some((s) => s.blocks.some((b) => (b.type as string) === 'validation'))
     if (hasValidation) {
-      const migrated = scenarios.map((s) => ({
+      const migrated = valid.map((s) => ({
         ...s,
         blocks: s.blocks.filter((b) => (b.type as string) !== 'validation'),
       }))
       saveScenarios(migrated)
       return migrated
     }
-    return scenarios
+
+    return valid
   } catch {
     return [DEMO_SCENARIO]
   }
@@ -147,4 +191,27 @@ export function saveScenario(scenario: Scenario): void {
 export function deleteScenario(id: string): void {
   const scenarios = loadScenarios().filter((s) => s.id !== id)
   saveScenarios(scenarios)
+}
+
+// Issue #19: 複数タブ間のLocalStorage同期
+// storage イベントを監視し、他タブでの変更を検知できるようにコールバックを登録する
+type StorageChangeCallback = (scenarios: Scenario[]) => void
+
+const storageListeners = new Set<StorageChangeCallback>()
+
+export function onScenariosChange(callback: StorageChangeCallback): () => void {
+  storageListeners.add(callback)
+  return () => storageListeners.delete(callback)
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key !== STORAGE_KEY || !e.newValue) return
+    try {
+      const updated = loadScenarios()
+      storageListeners.forEach((cb) => cb(updated))
+    } catch {
+      // parse失敗時は無視
+    }
+  })
 }

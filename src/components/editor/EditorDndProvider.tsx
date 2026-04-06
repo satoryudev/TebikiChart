@@ -27,7 +27,6 @@ const PALETTE_META: Record<BlockType, { label: string; emoji: string; color: str
   start:            { label: '開始ブロック',       emoji: '▶',  color: 'border-green-300 bg-green-50' },
   end:              { label: '終了ブロック',       emoji: '⏹',  color: 'border-gray-300 bg-gray-50' },
   speech:           { label: '吹き出し',           emoji: '💬', color: 'border-blue-300 bg-blue-50' },
-  spotlight:        { label: 'スポットライト',     emoji: '🔦', color: 'border-amber-300 bg-amber-50' },
   'input-spotlight':{ label: '入力スポットライト', emoji: '✏️', color: 'border-indigo-300 bg-indigo-50' },
   branch:           { label: '条件分岐',           emoji: '🔀', color: 'border-red-300 bg-red-50' },
 }
@@ -37,6 +36,13 @@ export default function EditorDndProvider({ children }: { children: React.ReactN
   const { currentBranchView: branchView } = useBranchView()
   const [activePaletteType, setActivePaletteType] = useState<BlockType | null>(null)
   const [overBlockId, setOverBlockId] = useState<string | null>(null)
+
+  // ブランチビュー内のチェーンに条件分岐ブロックが含まれるか判定
+  const branchChainHasBranch = branchView ? (() => {
+    const branch = scenario?.blocks.find((b) => b.id === branchView.branchId) as BranchBlock | undefined
+    const startId = branch ? (branchView.side === 'yes' ? branch.yesNextId : branch.noNextId) : null
+    return getBranchChain(scenario?.blocks ?? [], startId).some(b => b.type === 'branch')
+  })() : false
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -51,45 +57,46 @@ export default function EditorDndProvider({ children }: { children: React.ReactN
 
   const handleDragOver = (e: DragOverEvent) => {
     if (e.active.data.current?.source === 'palette') {
+      // ブランチビューで分岐ブロックが含まれる場合はドロップ表示を抑制
+      if (branchChainHasBranch) return
       setOverBlockId((e.over?.id as string) ?? null)
     }
   }
 
-  const handleDragEnd = (e: DragEndEvent) => {
-    const { active, over } = e
-    setActivePaletteType(null)
-    setOverBlockId(null)
+  // Issue #34: handleDragEnd をサブ関数に分割して可読性を向上
+  const handleBranchViewDrop = (
+    active: DragEndEvent['active'],
+    over: NonNullable<DragEndEvent['over']>,
+  ) => {
+    if (branchChainHasBranch) return
 
-    if (!over) return
+    const branch = scenario?.blocks.find((b) => b.id === branchView!.branchId) as BranchBlock | undefined
+    const startId = branch ? (branchView!.side === 'yes' ? branch.yesNextId : branch.noNextId) : null
+    const chainBlocks = getBranchChain(scenario?.blocks ?? [], startId)
 
-    // ── ブランチビュー内の操作 ──
-    if (branchView) {
-      const branch = scenario?.blocks.find((b) => b.id === branchView.branchId) as BranchBlock | undefined
-      const startId = branch ? (branchView.side === 'yes' ? branch.yesNextId : branch.noNextId) : null
-      const chainBlocks = getBranchChain(scenario?.blocks ?? [], startId)
-
-      if (active.data.current?.source === 'palette') {
-        const blockType = active.data.current.blockType as BlockType
-        const overId = over.id as string
-        const insertIdx = (overId === 'branch-canvas-end' || overId === 'branch-canvas-container')
-          ? chainBlocks.length
-          : (() => {
-              const i = chainBlocks.findIndex((b) => b.id === overId)
-              return i === -1 ? chainBlocks.length : i
-            })()
-        addBlocksToBranchChain(branchView.branchId, branchView.side, [createBlock(blockType)], insertIdx)
-      } else {
-        // チェーン内の並び替え
-        const oldIdx = chainBlocks.findIndex((b) => b.id === active.id)
-        const newIdx = chainBlocks.findIndex((b) => b.id === over.id)
-        if (active.id !== over.id && oldIdx !== -1 && newIdx !== -1) {
-          reorderBranchChain(branchView.branchId, branchView.side, arrayMove(chainBlocks, oldIdx, newIdx))
-        }
+    if (active.data.current?.source === 'palette') {
+      const blockType = active.data.current.blockType as BlockType
+      const overId = over.id as string
+      const insertIdx = (overId === 'branch-canvas-end' || overId === 'branch-canvas-container')
+        ? chainBlocks.length
+        : (() => {
+            const i = chainBlocks.findIndex((b) => b.id === overId)
+            return i === -1 ? chainBlocks.length : i
+          })()
+      addBlocksToBranchChain(branchView!.branchId, branchView!.side, [createBlock(blockType)], insertIdx)
+    } else {
+      const oldIdx = chainBlocks.findIndex((b) => b.id === active.id)
+      const newIdx = chainBlocks.findIndex((b) => b.id === over.id)
+      if (active.id !== over.id && oldIdx !== -1 && newIdx !== -1) {
+        reorderBranchChain(branchView!.branchId, branchView!.side, arrayMove(chainBlocks, oldIdx, newIdx))
       }
-      return
     }
+  }
 
-    // ── メインキャンバスの操作 ──
+  const handleMainCanvasDrop = (
+    active: DragEndEvent['active'],
+    over: NonNullable<DragEndEvent['over']>,
+  ) => {
     if (active.data.current?.source === 'palette') {
       const blockType = active.data.current.blockType as BlockType
       const overId = over.id as string
@@ -119,6 +126,20 @@ export default function EditorDndProvider({ children }: { children: React.ReactN
       if (active.id !== over.id && oldIdx !== -1 && newIdx !== -1) {
         reorderBlocks(arrayMove(blocks, oldIdx, newIdx))
       }
+    }
+  }
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e
+    setActivePaletteType(null)
+    setOverBlockId(null)
+
+    if (!over) return
+
+    if (branchView) {
+      handleBranchViewDrop(active, over)
+    } else {
+      handleMainCanvasDrop(active, over)
     }
   }
 

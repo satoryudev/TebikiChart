@@ -27,26 +27,26 @@ export function getBlockSummary(block: Block): string {
 interface Props {
   block: Block
   index: number
+  disableDrag?: boolean
 }
 
-export default function BlockItem({ block, index }: Props) {
+export default function BlockItem({ block, index, disableDrag = false }: Props) {
   const meta = TYPE_META[block.type] ?? { label: block.type, color: 'border-l-gray-400 bg-gray-50', emoji: '?' }
   const { selectedBlockId, setSelectedBlockId, removeBlock, activeBlockId } = useEditorStore()
   const isSelected = selectedBlockId === block.id
   const isActive = activeBlockId === block.id
   const isDeletable = block.type !== 'start' && block.type !== 'end'
 
+  // Issue #23: useEffectでの同期を廃止し、state更新と同時にrefを直接更新する
   const [pendingDelete, setPendingDelete] = useState(false)
   const pendingDeleteRef = useRef(false)
 
-  // pendingDelete が変わったら ref も同期
-  useEffect(() => {
-    pendingDeleteRef.current = pendingDelete
-  }, [pendingDelete])
-
   // 選択解除時に pendingDelete をリセット
   useEffect(() => {
-    if (!isSelected) setPendingDelete(false)
+    if (!isSelected) {
+      setPendingDelete(false)
+      pendingDeleteRef.current = false
+    }
   }, [isSelected])
 
   // Backspace キーで削除確認フロー
@@ -67,13 +67,17 @@ export default function BlockItem({ block, index }: Props) {
         if (pendingDeleteRef.current) {
           removeBlock(block.id)
           setPendingDelete(false)
+          pendingDeleteRef.current = false
         } else {
           setPendingDelete(true)
+          pendingDeleteRef.current = true
         }
       } else if (e.key === 'Escape') {
         setPendingDelete(false)
+        pendingDeleteRef.current = false
       } else {
         setPendingDelete(false)
+        pendingDeleteRef.current = false
       }
     }
 
@@ -81,7 +85,7 @@ export default function BlockItem({ block, index }: Props) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isSelected, isDeletable, block.id, removeBlock])
 
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id, disabled: disableDrag })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -95,11 +99,11 @@ export default function BlockItem({ block, index }: Props) {
       style={style}
       data-block-id={block.id}
       {...attributes}
-      {...listeners}
+      {...(disableDrag ? {} : listeners)}
       onClick={() => { if (selectedBlockId !== null) setSelectedBlockId(block.id) }}
       onDoubleClick={(e) => { e.stopPropagation(); setSelectedBlockId(block.id) }}
       className={`
-        flex items-stretch gap-2 p-3 rounded-lg border-l-4 cursor-grab active:cursor-grabbing outline-none
+        flex items-stretch gap-2 p-3 rounded-lg border-l-4 ${disableDrag ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} outline-none
         ${meta.color}
         ${isActive
           ? 'ring-2 ring-amber-400 ring-offset-1 animate-pulse shadow-[0_0_12px_3px_rgba(251,191,36,0.5)]'

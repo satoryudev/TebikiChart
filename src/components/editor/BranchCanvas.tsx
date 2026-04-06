@@ -27,14 +27,11 @@ function DropLine() {
   return <div className="h-0.5 mx-1 my-0.5 rounded bg-blue-400 shadow-sm" />
 }
 
-function BranchAppendDropZone({ showCenterLine = false }: { showCenterLine?: boolean }) {
+function BranchAppendDropZone() {
   const { setNodeRef } = useDroppable({ id: 'branch-canvas-end' })
   const overBlockId = useContext(DragOverContext)
   return (
     <div ref={setNodeRef} className="relative h-8 mt-1">
-      {showCenterLine && (
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300 -translate-x-1/2 pointer-events-none select-none" />
-      )}
       {overBlockId === 'branch-canvas-end' && <DropLine />}
     </div>
   )
@@ -43,7 +40,6 @@ function BranchAppendDropZone({ showCenterLine = false }: { showCenterLine?: boo
 export default function BranchCanvas() {
   const { branchStack, currentBranchView, resetBranchView, truncateBranchStack, pushBranchView } = useBranchView()
   const { scenario } = useEditorStore()
-  const { setNodeRef } = useDroppable({ id: 'branch-canvas-container' })
   const overBlockId = useContext(DragOverContext)
 
   // スタック内の branchId が削除された場合はリセット
@@ -55,13 +51,22 @@ export default function BranchCanvas() {
     }
   }, [branchStack, scenario?.blocks, resetBranchView])
 
+  // useDroppable の disabled 判定のため、フック呼び出し前にチェーン情報を計算
+  const branchBlock = currentBranchView && scenario
+    ? scenario.blocks.find((b) => b.id === currentBranchView.branchId) as BranchBlock | undefined
+    : undefined
+  const chainStartId = branchBlock
+    ? (currentBranchView!.side === 'yes' ? branchBlock.yesNextId : branchBlock.noNextId)
+    : null
+  const chainBlocks = getBranchChain(scenario?.blocks ?? [], chainStartId)
+  const hasBranchInChain = chainBlocks.some(b => b.type === 'branch')
+
+  const { setNodeRef } = useDroppable({ id: 'branch-canvas-container', disabled: hasBranchInChain })
+
   if (!currentBranchView || !scenario) return null
 
-  const branch = scenario.blocks.find((b) => b.id === currentBranchView.branchId) as BranchBlock | undefined
+  const branch = branchBlock
   if (!branch) return null
-
-  const startId = currentBranchView.side === 'yes' ? branch.yesNextId : branch.noNextId
-  const chainBlocks = getBranchChain(scenario.blocks, startId)
 
   // 現在の分岐に nextId がない場合はスタックを遡って最初に見つかる合流先を使う
   const mergeTargetBlock = (() => {
@@ -76,9 +81,6 @@ export default function BranchCanvas() {
   const isEmpty = chainBlocks.length === 0
     && overBlockId !== 'branch-canvas-end'
     && overBlockId !== 'branch-canvas-container'
-
-  const lastBlock = chainBlocks[chainBlocks.length - 1]
-  const lastIsBranch = lastBlock?.type === 'branch'
 
   return (
     <div className="flex flex-col flex-1 min-w-[320px] overflow-hidden">
@@ -143,6 +145,25 @@ export default function BranchCanvas() {
             <p>この分岐でのみ実行するブロックを</p>
             <p>ここにドラッグして追加</p>
           </div>
+        ) : hasBranchInChain ? (
+          // 条件分岐ブロックが含まれる場合はドラッグ・追加を完全に禁止
+          <div className="flex flex-col">
+            {chainBlocks.map((block, i) => (
+              <Fragment key={block.id}>
+                <BlockItem block={block} index={i} disableDrag />
+                {block.type === 'branch' ? (
+                  <BranchSplit
+                    branch={block}
+                    hasNextBlock={i < chainBlocks.length - 1}
+                    onNavigate={(side) => pushBranchView({ branchId: block.id, side })}
+                    hideMergeHint
+                  />
+                ) : (
+                  i < chainBlocks.length - 1 && <BlockConnector />
+                )}
+              </Fragment>
+            ))}
+          </div>
         ) : (
           <SortableContext items={chainBlocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
             <div className="flex flex-col">
@@ -162,7 +183,7 @@ export default function BranchCanvas() {
                   )}
                 </Fragment>
               ))}
-              <BranchAppendDropZone showCenterLine={lastIsBranch} />
+              <BranchAppendDropZone />
             </div>
           </SortableContext>
         )}
