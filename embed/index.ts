@@ -140,6 +140,10 @@ let pickCleanup: (() => void) | null = null
 function startPickMode(): void {
   if (pickCleanup) pickCleanup()
 
+  // ピックモード中は disabled 属性を一時的に全要素から外す（pointer-events が効かないため）
+  const disabledEls = Array.from(document.querySelectorAll<HTMLElement>('[disabled]'))
+  disabledEls.forEach((el) => el.removeAttribute('disabled'))
+
   const highlight = document.createElement('div')
   highlight.id = PICK_HIGHLIGHT_ID
   highlight.style.cssText = `
@@ -158,9 +162,13 @@ function startPickMode(): void {
   `
   document.body.appendChild(tip)
 
+  // mousemove で最後にホバーした要素を記憶（disabled 要素は mousedown が発火しないため）
+  let lastHoveredEl: Element | null = null
+
   const onMove = (e: MouseEvent) => {
     const el = document.elementFromPoint(e.clientX, e.clientY)
     if (!el || el === highlight || el === tip) return
+    lastHoveredEl = el
     const rect = el.getBoundingClientRect()
     highlight.style.display = 'block'
     highlight.style.left = `${rect.left - 2}px`
@@ -180,7 +188,8 @@ function startPickMode(): void {
   const onPick = (e: MouseEvent) => {
     e.preventDefault()
     e.stopImmediatePropagation()
-    let el = document.elementFromPoint(e.clientX, e.clientY)
+    // disabled 要素では elementFromPoint が親要素を返す場合があるため lastHoveredEl を優先
+    let el = lastHoveredEl ?? document.elementFromPoint(e.clientX, e.clientY)
     if (!el || el === highlight || el === tip) return
 
     // label をクリックした場合は関連する input/button を解決する
@@ -210,6 +219,7 @@ function startPickMode(): void {
     document.body.style.cursor = ''
     highlight.remove()
     tip.remove()
+    disabledEls.forEach((el) => el.setAttribute('disabled', ''))
     pickCleanup = null
   }
 }
