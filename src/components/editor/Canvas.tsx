@@ -27,15 +27,29 @@ function BlockConnector({ fromBlock }: { fromBlock: Block }) {
 }
 
 function DropLine() {
-  return <div className="h-0.5 mx-1 my-0.5 rounded bg-blue-400 shadow-sm" />
+  return (
+    <div className="flex items-center mx-1 my-1.5 animate-pulse">
+      <div className="w-3 h-3 rounded-full bg-blue-500 border-2 border-white dark:border-gray-900 shrink-0 shadow-sm z-10 -mr-1" />
+      <div className="flex-1 h-1 bg-blue-500 rounded-r-full" />
+    </div>
+  )
 }
 
 function AppendDropZone() {
   const { setNodeRef } = useDroppable({ id: 'canvas-end' })
   const overBlockId = useContext(DragOverContext)
+  const isOver = overBlockId === 'canvas-end'
   return (
-    <div ref={setNodeRef} className="h-8 mt-1">
-      {overBlockId === 'canvas-end' && <DropLine />}
+    <div
+      ref={setNodeRef}
+      className={`mt-1 overflow-hidden transition-all duration-200 ${isOver ? 'h-16' : 'h-8'}`}
+    >
+      {isOver && (
+        <div className="mx-1 h-14 rounded-lg border-2 border-dashed border-blue-400 bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center gap-1.5 animate-pulse">
+          <span className="text-blue-500 dark:text-blue-400 text-sm">＋</span>
+          <span className="text-xs font-medium text-blue-500 dark:text-blue-400">ここに追加</span>
+        </div>
+      )}
     </div>
   )
 }

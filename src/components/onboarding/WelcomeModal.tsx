@@ -44,7 +44,7 @@ export default function WelcomeModal({ onStart, onSkip }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="welcome-title"
-        className={`bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden transition-all duration-300 ${
+        className={`bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden transition-all duration-300 ${
           mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         }`}
       >
@@ -62,22 +62,22 @@ export default function WelcomeModal({ onStart, onSkip }: Props) {
         {/* Body */}
         <div className="px-8 py-6">
           {/* Role assignment pill */}
-          <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 mb-6">
-            <span className="text-emerald-600 text-lg font-bold">✓</span>
+          <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-4 py-3 mb-6">
+            <span className="text-emerald-600 dark:text-emerald-400 text-lg font-bold">✓</span>
             <div>
-              <p className="text-xs text-emerald-700 font-semibold">担当ロール</p>
-              <p className="text-sm text-emerald-900 font-medium">行政手続きナビゲーター</p>
+              <p className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">担当ロール</p>
+              <p className="text-sm text-emerald-900 dark:text-emerald-200 font-medium">行政手続きナビゲーター</p>
             </div>
           </div>
 
           {/* Task preview */}
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
             はじめにやること
           </p>
           <ul className="space-y-2.5 mb-6">
             {TASK_PREVIEW.map((item, i) => (
-              <li key={i} className="flex items-center gap-3 text-sm text-gray-700">
-                <span className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-base flex-shrink-0">
+              <li key={i} className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
+                <span className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-base flex-shrink-0">
                   {item.icon}
                 </span>
                 {item.text}
@@ -90,13 +90,13 @@ export default function WelcomeModal({ onStart, onSkip }: Props) {
             ref={ctaRef}
             onClick={() => handleClose(onStart)}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold text-sm
-              transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             オンボーディングを開始 →
           </button>
           <button
             onClick={() => handleClose(onSkip)}
-            className="mt-2 w-full text-xs text-gray-400 hover:text-gray-600 transition-colors py-1"
+            className="mt-2 w-full text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors py-1"
           >
             スキップして既存のシナリオを開く
           </button>

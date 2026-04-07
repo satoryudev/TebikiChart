@@ -10,11 +10,26 @@ export function useTheme() {
     setIsDark(document.documentElement.classList.contains('dark'))
   }, [])
 
-  const toggle = () => {
+  const toggle = (originX?: number, originY?: number) => {
     const next = !document.documentElement.classList.contains('dark')
-    document.documentElement.classList.toggle('dark', next)
-    localStorage.setItem('theme', next ? 'dark' : 'light')
-    setIsDark(next)
+
+    if (originX !== undefined && originY !== undefined) {
+      document.documentElement.style.setProperty('--theme-toggle-x', `${originX}px`)
+      document.documentElement.style.setProperty('--theme-toggle-y', `${originY}px`)
+    }
+
+    const apply = () => {
+      document.documentElement.classList.toggle('dark', next)
+      localStorage.setItem('theme', next ? 'dark' : 'light')
+      setIsDark(next)
+    }
+
+    if (!('startViewTransition' in document)) {
+      apply()
+      return
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(document as any).startViewTransition(apply)
   }
 
   return { isDark, toggle }

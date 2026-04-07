@@ -5,6 +5,7 @@ import {
   DndContext,
   DragOverlay,
   closestCenter,
+  pointerWithin,
   PointerSensor,
   KeyboardSensor,
   useSensor,
@@ -13,6 +14,7 @@ import {
   DragOverEvent,
   DragEndEvent,
 } from '@dnd-kit/core'
+import { useCallback } from 'react'
 import { sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable'
 import { BranchBlock, BlockType } from '@/types/scenario'
 import { useEditorStore } from '@/store/editorStore'
@@ -44,6 +46,13 @@ export default function EditorDndProvider({ children }: { children: React.ReactN
     const startId = branch?.options.find((o) => o.id === branchView.side)?.nextId ?? null
     return getBranchChain(scenario?.blocks ?? [], startId).some(b => b.type === 'branch')
   })() : false
+
+  // パレットドラッグ中はポインターが直接上にある要素のみ受け付ける（BlockEditor等への誤爆防止）
+  const collisionDetection = useCallback(
+    (args: Parameters<typeof closestCenter>[0]) =>
+      activePaletteType ? pointerWithin(args) : closestCenter(args),
+    [activePaletteType],
+  )
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -167,7 +176,7 @@ export default function EditorDndProvider({ children }: { children: React.ReactN
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={collisionDetection}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}

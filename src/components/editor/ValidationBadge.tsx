@@ -8,11 +8,27 @@ export default function ValidationBadge() {
   const { scenario, setSelectedBlockId } = useEditorStore()
   const [open, setOpen] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
+  const badgeRef = useRef<HTMLButtonElement>(null)
+  const prevTotalRef = useRef<number | null>(null)
 
   const issues: ValidationIssue[] = scenario ? validateScenario(scenario.blocks) : []
   const errorCount = issues.filter((i) => i.severity === 'error').length
   const warningCount = issues.filter((i) => i.severity === 'warning').length
   const totalCount = issues.length
+
+  // 問題件数が変化したときにバッジを shake させる
+  useEffect(() => {
+    const prev = prevTotalRef.current
+    prevTotalRef.current = totalCount
+    // 初回レンダリングはスキップ
+    if (prev === null) return
+    if (totalCount === prev) return
+    const el = badgeRef.current
+    if (!el) return
+    el.classList.remove('animate-shake')
+    void el.offsetWidth // reflow で animation をリセット
+    el.classList.add('animate-shake')
+  }, [totalCount])
 
   useEffect(() => {
     if (!open) return
@@ -45,6 +61,7 @@ export default function ValidationBadge() {
   return (
     <div className="relative" ref={popoverRef}>
       <button
+        ref={badgeRef}
         onClick={() => setOpen((v) => !v)}
         className={`text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${badgeCls}`}
       >

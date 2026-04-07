@@ -127,20 +127,20 @@ function TourOverlay({ onComplete, onSkip }: Omit<Props, 'active'>) {
 
       {/* Tooltip */}
       <div
-        className={`fixed z-50 bg-white rounded-xl shadow-2xl p-4 transition-all duration-200 ${
+        className={`fixed z-50 bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 transition-all duration-200 ${
           tooltipVisible ? 'opacity-100 translate-x-0 translate-y-0' : currentStep.position === 'right' ? 'opacity-0 translate-x-2' : currentStep.position === 'bottom' ? 'opacity-0 translate-y-2' : 'opacity-0 -translate-x-2'
         }`}
         style={{ top: tooltipTop, left: tooltipLeft, width: TOOLTIP_W }}
       >
-        <p className="text-sm text-gray-700 mb-3 leading-relaxed">{currentStep.message}</p>
+        <p className="text-sm text-gray-700 dark:text-gray-200 mb-3 leading-relaxed">{currentStep.message}</p>
         <div className="flex justify-between items-center">
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-400 dark:text-gray-500">
             {step + 1} / {TOUR_STEPS.length}
           </span>
           <div className="flex gap-2">
             <button
               onClick={onSkip}
-              className="text-xs text-gray-400 hover:text-gray-600 transition-colors px-1"
+              className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors px-1"
             >
               スキップ
             </button>

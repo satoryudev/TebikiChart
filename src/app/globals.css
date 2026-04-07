@@ -13,3 +13,47 @@
     @apply block text-xs font-semibold text-gray-600 mb-1 dark:text-gray-400;
   }
 }
+
+@layer utilities {
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-4px); }
+    50%       { transform: translateX(4px); }
+    80%       { transform: translateX(-2px); }
+  }
+  .animate-shake {
+    animation: shake 0.35s ease-in-out;
+  }
+
+  @keyframes theme-icon-enter {
+    from { transform: rotate(-45deg) scale(0.6); opacity: 0; }
+    to   { transform: rotate(0deg) scale(1);    opacity: 1; }
+  }
+  .animate-theme-icon {
+    animation: theme-icon-enter 0.3s ease-out;
+  }
+}
+
+/* ダークモード切り替え：ボタン起点の円形リビール */
+::view-transition-old(root) {
+  animation: none;
+  z-index: 1;
+}
+::view-transition-new(root) {
+  animation: theme-reveal 0.45s ease-in-out;
+  z-index: 2;
+}
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0% at var(--theme-toggle-x, 50%) var(--theme-toggle-y, 50%));
+  }
+  to {
+    clip-path: circle(150% at var(--theme-toggle-x, 50%) var(--theme-toggle-y, 50%));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

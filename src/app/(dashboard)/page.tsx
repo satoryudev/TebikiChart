@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Scenario } from '@/types/scenario'
 import { loadScenarios, deleteScenario, saveScenario, DEMO_SCENARIO } from '@/lib/scenarioStorage'
-import { getCompletionStats } from '@/lib/scenarioUtils'
 import { useOnboarding } from '@/hooks/useOnboarding'
 import WelcomeModal from '@/components/onboarding/WelcomeModal'
 import ScenarioWizard from '@/components/onboarding/ScenarioWizard'
@@ -26,8 +25,6 @@ export default function HomePage() {
     document.addEventListener('govguide:open-onboarding', handler)
     return () => document.removeEventListener('govguide:open-onboarding', handler)
   }, [])
-
-  const { completed, inProgress, pct } = getCompletionStats(scenarios)
 
   const openWizard = () => setWizardOpen(true)
 
@@ -73,33 +70,10 @@ export default function HomePage() {
           <span className="bg-white/20 text-white text-xs font-medium px-3 py-1 rounded-full">
             {scenarios.length} シナリオ
           </span>
-          <span className="bg-white/20 text-white text-xs font-medium px-3 py-1 rounded-full">
-            {completed} 完了
-          </span>
-          <span className="bg-white/20 text-white text-xs font-medium px-3 py-1 rounded-full">
-            {inProgress} 作成中
-          </span>
         </div>
       </div>
 
       <div className="px-8 py-6 space-y-6">
-        {/* Progress overview card */}
-        {scenarios.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">全体の進捗</span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">{completed} / {scenarios.length} 完了</span>
-            </div>
-            <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-              <div
-                className="bg-emerald-500 h-2 rounded-full transition-all duration-700"
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">{pct}% 完了</p>
-          </div>
-        )}
-
         {/* Section header */}
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-gray-800 dark:text-gray-200">

@@ -63,8 +63,8 @@ const PreviewPane = forwardRef<HTMLIFrameElement, Props>(
           <button
             onClick={onPlay}
             disabled={isPlaying}
-            className="text-xs px-2.5 py-0.5 rounded font-semibold bg-green-500 text-white
-              hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+            className="text-xs px-2.5 py-0.5 rounded font-semibold bg-green-500 dark:bg-green-700 text-white
+              hover:bg-green-600 dark:hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
           >
             ▶ 実行
           </button>
