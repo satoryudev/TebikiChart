@@ -28,6 +28,7 @@ const PreviewPane = forwardRef<HTMLIFrameElement, Props>(
         {/* 隠しファイル入力 */}
         <input
           ref={fileInputRef}
+          id="preview-file-input"
           type="file"
           accept=".html,.htm"
           className="hidden"

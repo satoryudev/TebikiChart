@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useEditorStore } from '@/store/editorStore'
 import { loadScenario } from '@/lib/scenarioStorage'
+import { savePreviewData, loadPreviewData } from '@/lib/previewStorage'
 import BlockPalette from '@/components/editor/BlockPalette'
 import Canvas from '@/components/editor/Canvas'
 import BlockEditor from '@/components/editor/BlockEditor'
@@ -162,6 +163,33 @@ export default function EditorPage() {
   useEffect(() => {
     const s = loadScenario(id)
     if (s) setScenario(s)
+
+    // 前回このシナリオで開いていたファイルを復元
+    const saved = loadPreviewData(id)
+    if (saved) {
+      const restoreBlob = async () => {
+        let injectedHtml: string
+        if ('html' in saved) {
+          // window キャッシュ: 注入済みのためそのまま使用
+          injectedHtml = saved.html
+        } else {
+          // localStorage: 元 HTML に embed.js を再注入
+          const embedJs = await fetch('/embed.js').then((r) => r.text())
+          const injection = `\n<script>\n${embedJs}\n<\/script>`
+          injectedHtml = /<\/body>/i.test(saved.originalHtml)
+            ? saved.originalHtml.replace(/<\/body>/i, `${injection}\n</body>`)
+            : saved.originalHtml + injection
+        }
+        if (localBlobRef.current) URL.revokeObjectURL(localBlobRef.current)
+        const blob = new Blob([injectedHtml], { type: 'text/html' })
+        const url = URL.createObjectURL(blob)
+        localBlobRef.current = url
+        setLocalBlobUrl(url)
+        setLocalFileName(saved.fileName)
+      }
+      restoreBlob()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, setScenario])
 
   // Ctrl+Z / Cmd+Z → undo、Ctrl+Shift+Z / Cmd+Shift+Z → redo
@@ -278,6 +306,7 @@ export default function EditorPage() {
     localBlobRef.current = url
     setLocalBlobUrl(url)
     setLocalFileName(file.name)
+    savePreviewData(id, { fileName: file.name, html: modified, originalHtml: html })
   }
 
   const getPreviewSrc = () => {
@@ -354,16 +383,6 @@ export default function EditorPage() {
               {scenario.title}
             </button>
           )}
-          <select
-            className="text-xs border border-gray-200 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-400 flex-shrink-0 ml-1"
-            value={scenario.category}
-            onChange={(e) => updateScenarioMeta({ category: e.target.value as typeof scenario.category })}
-          >
-            <option value="moving">引越し・転居</option>
-            <option value="mynumber">マイナンバー</option>
-            <option value="tax">確定申告</option>
-            <option value="childcare">育児・出産</option>
-          </select>
         </div>
 
         {/* Right: status badge + validation + theme toggle */}

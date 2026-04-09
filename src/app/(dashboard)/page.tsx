@@ -28,6 +28,20 @@ export default function HomePage() {
 
   const openWizard = () => setWizardOpen(true)
 
+  const uniqueTitle = (base: string): string => {
+    const titles = scenarios.map((s) => s.title)
+    if (!titles.includes(base)) return base
+    // base 自体を (1) と見なし、既存の (N) の最大値+1 を採番する
+    const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const pattern = new RegExp(`^${escaped}\\((\\d+)\\)$`)
+    let max = 1
+    for (const t of titles) {
+      const m = t.match(pattern)
+      if (m) max = Math.max(max, parseInt(m[1], 10))
+    }
+    return `${base}(${max + 1})`
+  }
+
   const handleWizardComplete = ({
     title,
     useTemplate,
@@ -36,6 +50,7 @@ export default function HomePage() {
     useTemplate: boolean
   }) => {
     const id = `scenario-${Date.now()}`
+    title = uniqueTitle(title)
     const now = new Date().toISOString()
     const startId = `block-${Date.now()}-start`
     const endId = `block-${Date.now()}-end`

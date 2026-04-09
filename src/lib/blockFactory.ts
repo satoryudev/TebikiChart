@@ -1,4 +1,4 @@
-import { Block, BlockType, BranchBlock, SpeechBlock } from '@/types/scenario'
+import { Block, BlockType, BranchBlock } from '@/types/scenario'
 
 export function createBlock(type: BlockType): Block {
   const id = `block-${Math.random().toString(36).slice(2, 7)}`
@@ -21,17 +21,13 @@ export function createBlock(type: BlockType): Block {
   }
 }
 
-/** 条件分岐ブロックをドロップした際に yes/no の子ブロックを含めて3つまとめて生成する */
-export function createBranchGroup(): [BranchBlock, SpeechBlock, SpeechBlock] {
+/** 条件分岐ブロックを生成する（分岐先は空） */
+export function createBranchGroup(): [BranchBlock] {
   const branchId = `block-${Math.random().toString(36).slice(2, 7)}`
-  const yesId    = `block-${Math.random().toString(36).slice(2, 7)}`
-  const noId     = `block-${Math.random().toString(36).slice(2, 7)}`
   return [
     { id: branchId, type: 'branch', question: '', nextId: null, options: [
-      { id: 'yes', label: 'はい', color: 'green', nextId: yesId },
-      { id: 'no',  label: 'いいえ', color: 'red',   nextId: noId },
+      { id: 'yes', label: 'はい', color: 'green', nextId: null },
+      { id: 'no',  label: 'いいえ', color: 'red',   nextId: null },
     ] },
-    { id: yesId,    type: 'speech',  message: '', characterMood: 'normal', nextId: null },
-    { id: noId,     type: 'speech',  message: '', characterMood: 'normal', nextId: null },
   ]
 }
