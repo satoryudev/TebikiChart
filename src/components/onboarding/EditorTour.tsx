@@ -1,6 +1,6 @@
 'use client';
 
-import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
+import React, { CSSProperties, MouseEvent as ReactMouseEvent, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useEditorStore } from '@/store/editorStore';
 import { Block } from '@/types/scenario';
@@ -415,21 +415,7 @@ function InteractiveReorderStep({ onSkip }: { onSkip: () => void }) {
       )}
 
       {/* Instruction tooltip */}
-      <div
-        style={{
-          position: 'fixed',
-          zIndex: 44,
-          bottom: 32,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: 300,
-          pointerEvents: 'auto',
-          background: 'white',
-          borderRadius: 16,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-          padding: 16,
-        }}
-      >
+      <DraggableTourPanel stepLabel={`${REORDER_STEP_INDEX + 1} / ${TOTAL_STEPS}`}>
         <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, marginBottom: 4 }}>
           <span style={{ fontWeight: 600 }}>💬 吹き出し</span>と
           <span style={{ fontWeight: 600 }}>✏️ スポットライト</span>の順序を入れ替えてみましょう
@@ -437,10 +423,7 @@ function InteractiveReorderStep({ onSkip }: { onSkip: () => void }) {
         <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>
           ドラッグ＆ドロップでキャンバス内のブロックを並び替えられます
         </p>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>
-            {REORDER_STEP_INDEX + 1} / {TOTAL_STEPS}
-          </span>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
           <button
             onClick={onSkip}
             style={{
@@ -451,7 +434,7 @@ function InteractiveReorderStep({ onSkip }: { onSkip: () => void }) {
             スキップ
           </button>
         </div>
-      </div>
+      </DraggableTourPanel>
     </>,
     document.body
   );
@@ -582,7 +565,7 @@ function InteractiveMenuStep({
         )}
 
         {/* 説明ツールチップ */}
-        <div style={{ position: 'fixed', zIndex: 44, bottom: 32, left: '50%', transform: 'translateX(-50%)', width: 300, pointerEvents: 'auto', background: 'white', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', padding: 16 }}>
+        <DraggableTourPanel stepLabel={`${MENU_STEP_INDEX + 1} / ${TOTAL_STEPS}`}>
           <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, marginBottom: 4 }}>
             右上の <span style={{ fontWeight: 700, fontFamily: 'monospace', fontSize: 16 }}>⋮</span> をクリック、またはブロックをダブルクリックして設定を開いてみましょう
           </p>
@@ -590,10 +573,9 @@ function InteractiveMenuStep({
             ブロックのテキストや表示設定を変更できます
           </p>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: '#9ca3af' }}>{MENU_STEP_INDEX + 1} / {TOTAL_STEPS}</span>
             <button onClick={onSkip} style={{ fontSize: 12, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}>スキップ</button>
           </div>
-        </div>
+        </DraggableTourPanel>
       </>,
       document.body
     );
@@ -675,7 +657,7 @@ function InteractiveMenuStep({
       )}
 
       {/* 説明ツールチップ */}
-      <div style={{ position: 'fixed', zIndex: 44, bottom: 32, left: '50%', transform: 'translateX(-50%)', width: 300, pointerEvents: 'auto', background: 'white', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', padding: 16 }}>
+      <DraggableTourPanel stepLabel={`${MENU_STEP_INDEX + 1} / ${TOTAL_STEPS}`}>
         <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, marginBottom: 4 }}>
           ブロックの<span style={{ fontWeight: 600 }}>テキストや設定</span>をここで編集できます
         </p>
@@ -683,13 +665,12 @@ function InteractiveMenuStep({
           ブロックで設定した内容はプレビュー画面で確認できます
         </p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{MENU_STEP_INDEX + 1} / {TOTAL_STEPS}</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={onSkip} style={{ fontSize: 12, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}>スキップ</button>
             <button onClick={onNext} style={{ fontSize: 12, background: '#2563eb', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', padding: '4px 12px' }}>次へ →</button>
           </div>
         </div>
-      </div>
+      </DraggableTourPanel>
     </>,
     document.body
   );
@@ -842,7 +823,7 @@ function InteractiveBlockFillStep({
         <div className="animate-tour-pulse" style={{ position: 'fixed', top: secondRect.top - PAD, left: secondRect.left - PAD, width: secondRect.width + PAD * 2, height: secondRect.height + PAD * 2, borderRadius: 10, border: '2px solid rgba(99,102,241,0.9)', zIndex: 42, pointerEvents: 'none' }} />
       )}
 
-      <div style={{ position: 'fixed', zIndex: 44, bottom: 32, left: '50%', transform: 'translateX(-50%)', width: 300, pointerEvents: 'auto', background: 'white', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', padding: 16 }}>
+      <DraggableTourPanel stepLabel={`${stepDisplay} / ${TOTAL_STEPS}`}>
         <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, marginBottom: 4 }}>
           {config ? (config.fillMessage ?? config.message) : 'ブロックの設定を入力してください。'}
         </p>
@@ -850,10 +831,9 @@ function InteractiveBlockFillStep({
           {config ? config.sub : '各フィールドを埋めてエラーを修正しましょう。'}
         </p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{stepDisplay} / {TOTAL_STEPS}</span>
           <button onClick={onSkip} style={{ fontSize: 12, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}>スキップ</button>
         </div>
-      </div>
+      </DraggableTourPanel>
     </>,
     document.body
   );
@@ -944,7 +924,7 @@ function InteractiveBlockHintStep({
         />
       )}
 
-      <div style={{ position: 'fixed', zIndex: 44, bottom: 32, left: '50%', transform: 'translateX(-50%)', width: 300, pointerEvents: 'auto', background: 'white', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', padding: 16 }}>
+      <DraggableTourPanel stepLabel={`${MENU_STEP_INDEX + 3} / ${TOTAL_STEPS}`}>
         <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, marginBottom: 4 }}>
           次はこちらのブロックを設定しましょう
         </p>
@@ -952,10 +932,9 @@ function InteractiveBlockHintStep({
           右上の <span style={{ fontWeight: 700, fontFamily: 'monospace' }}>⋮</span> をクリック、またはブロックをダブルクリックして設定を開いてください
         </p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{MENU_STEP_INDEX + 3} / {TOTAL_STEPS}</span>
           <button onClick={onSkip} style={{ fontSize: 12, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}>スキップ</button>
         </div>
-      </div>
+      </DraggableTourPanel>
     </>,
     document.body
   );
@@ -1127,12 +1106,11 @@ function InteractiveRibbonStep({ onNext, onSkip }: { onNext: () => void; onSkip:
         />
       )}
 
-      <div style={{ position: 'fixed', zIndex: 44, top: tTop, left: tLeft, width: TW, pointerEvents: 'auto', background: 'white', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', padding: 16 }}>
+      <DraggableTourPanel initialTop={tTop} initialLeft={tLeft} width={TW} stepLabel={`${RIBBON_STEP_DISPLAY} / ${TOTAL_STEPS}`}>
         <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>
           {current.message}
         </p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{RIBBON_STEP_DISPLAY} / {TOTAL_STEPS}</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={onSkip} style={{ fontSize: 12, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}>スキップ</button>
             {!current.waitForClick && (subIndex !== STOP_INDEX || previewDone) && (
@@ -1142,7 +1120,7 @@ function InteractiveRibbonStep({ onNext, onSkip }: { onNext: () => void; onSkip:
             )}
           </div>
         </div>
-      </div>
+      </DraggableTourPanel>
     </>,
     document.body
   );
@@ -1251,15 +1229,14 @@ function InteractiveSpeechClearStep({ onNext, onSkip }: { onNext: () => void; on
         />
       )}
 
-      <div style={{ position: 'fixed', zIndex: 44, top: tTop, left: tLeft, width: TW, pointerEvents: 'auto', background: 'white', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', padding: 16 }}>
+      <DraggableTourPanel initialTop={tTop} initialLeft={tLeft} width={TW} stepLabel={`${SPEECH_CLEAR_STEP_DISPLAY} / ${TOTAL_STEPS}`}>
         <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>
           次に、吹き出しのセリフを全て削除してみましょう。
         </p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{SPEECH_CLEAR_STEP_DISPLAY} / {TOTAL_STEPS}</span>
           <button onClick={onSkip} style={{ fontSize: 12, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}>スキップ</button>
         </div>
-      </div>
+      </DraggableTourPanel>
     </>,
     document.body
   );
@@ -1347,15 +1324,14 @@ function InteractiveRunPreviewStep({ onNext, onSkip }: { onNext: () => void; onS
         />
       )}
 
-      <div style={{ position: 'fixed', zIndex: 44, top: tTop, left: tLeft, width: TW, pointerEvents: 'auto', background: 'white', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', padding: 16 }}>
+      <DraggableTourPanel initialTop={tTop} initialLeft={tLeft} width={TW} stepLabel={`${RUN_PREVIEW_STEP_DISPLAY} / ${TOTAL_STEPS}`}>
         <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>
           セリフが欠けた状態で実行してみましょう。
         </p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{RUN_PREVIEW_STEP_DISPLAY} / {TOTAL_STEPS}</span>
           <button onClick={onSkip} style={{ fontSize: 12, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}>スキップ</button>
         </div>
-      </div>
+      </DraggableTourPanel>
     </>,
     document.body
   );
@@ -1440,7 +1416,7 @@ function InteractiveThemeStep({ onNext, onSkip }: { onNext: () => void; onSkip: 
         />
       )}
 
-      <div style={{ position: 'fixed', zIndex: 44, top: tTop, left: tLeft, width: TW, pointerEvents: 'auto', background: 'white', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', padding: 16 }}>
+      <DraggableTourPanel initialTop={tTop} initialLeft={tLeft} width={TW} stepLabel={`${THEME_STEP_DISPLAY} / ${TOTAL_STEPS}`}>
         <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, marginBottom: 4 }}>
           {subPhase === 'first'
             ? isDark
@@ -1455,10 +1431,9 @@ function InteractiveThemeStep({ onNext, onSkip }: { onNext: () => void; onSkip: 
           画面右上のボタンでいつでも切り替えられます
         </p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{THEME_STEP_DISPLAY} / {TOTAL_STEPS}</span>
           <button onClick={onSkip} style={{ fontSize: 12, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}>スキップ</button>
         </div>
-      </div>
+      </DraggableTourPanel>
     </>,
     document.body
   );
@@ -1653,7 +1628,7 @@ function InteractiveFieldStep({ onNext, onSkip }: { onNext: () => void; onSkip: 
       )}
 
       {/* 説明ツールチップ */}
-      <div style={{ position: 'fixed', zIndex: 44, bottom: 32, left: '50%', transform: 'translateX(-50%)', width: 300, pointerEvents: 'auto', background: 'white', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', padding: 16 }}>
+      <DraggableTourPanel stepLabel={`${FIELD_STEP_INDEX + 1} / ${TOTAL_STEPS}`}>
         <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, marginBottom: 4 }}>
           {config ? config.message : 'ブロックの設定を確認して入力してください。'}
         </p>
@@ -1661,10 +1636,9 @@ function InteractiveFieldStep({ onNext, onSkip }: { onNext: () => void; onSkip: 
           {config ? config.sub : '各フィールドを埋めてエラーを修正しましょう。'}
         </p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{FIELD_STEP_INDEX + 1} / {TOTAL_STEPS}</span>
           <button onClick={onSkip} style={{ fontSize: 12, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}>スキップ</button>
         </div>
-      </div>
+      </DraggableTourPanel>
     </>,
     document.body
   );
@@ -1824,21 +1798,7 @@ function InteractiveDragStep({
       {dragPos && <DragBlockCard pos={dragPos} stage={stage} />}
 
       {/* Instruction tooltip */}
-      <div
-        style={{
-          position: 'fixed',
-          zIndex: 44,
-          bottom: 32,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: 300,
-          pointerEvents: 'auto',
-          background: 'white',
-          borderRadius: 16,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-          padding: 16,
-        }}
-      >
+      <DraggableTourPanel key={stageIndex} stepLabel={`${stageIndex + 1} / ${TOTAL_STEPS}`}>
         <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, marginBottom: 4 }}>
           <span style={{ fontWeight: 600 }}>{stage.emoji} {stage.label}</span>をキャンバスへドラッグして配置してみましょう
         </p>
@@ -1847,7 +1807,6 @@ function InteractiveDragStep({
         </p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 12, color: '#9ca3af' }}>
-            {stageIndex + 1} / {TOTAL_STEPS}
           </span>
           <button
             onClick={onSkip}
@@ -1859,9 +1818,137 @@ function InteractiveDragStep({
             スキップ
           </button>
         </div>
-      </div>
+      </DraggableTourPanel>
     </>,
     document.body
+  );
+}
+
+// ─── Draggable tour panel ──────────────────────────────────────────────────
+
+// ステップをまたいで位置を引き継ぐためのモジュールレベル変数
+let _tourPanelPos: { left: number; top: number } | null = null;
+
+/**
+ * チュートリアル全フェーズで共有するドラッグ移動可能な指示パネル。
+ * ドラッグ後の位置は次のステップでも引き継がれる。
+ */
+function DraggableTourPanel({
+  children,
+  initialBottom,
+  initialLeft,
+  initialTop,
+  width = 300,
+  stepLabel,
+}: {
+  children: React.ReactNode;
+  initialBottom?: number;
+  initialLeft?: number;
+  initialTop?: number;
+  width?: number;
+  stepLabel?: string;
+}) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  // props をマウント時の値として ref に保持（再レンダー後も初期値を参照できるようにする）
+  const initTopRef    = useRef(initialTop);
+  const initLeftRef   = useRef(initialLeft);
+  const initBottomRef = useRef(initialBottom);
+
+  // マウント直後（ペイント前）に位置を確定させる
+  // React の style prop には top/left/bottom/transform を含めないことで
+  // 親コンポーネントの再レンダーによる上書きを防ぐ
+  useLayoutEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+
+    if (_tourPanelPos) {
+      // 前ステップでドラッグ済みの位置を引き継ぐ
+      el.style.top       = `${_tourPanelPos.top}px`;
+      el.style.left      = `${_tourPanelPos.left}px`;
+    } else if (initTopRef.current !== undefined) {
+      // 計算済み top/left で配置
+      el.style.top  = `${initTopRef.current}px`;
+      el.style.left = `${initLeftRef.current ?? 0}px`;
+    } else {
+      // 画面下部中央に配置
+      const bottom = initBottomRef.current ?? 32;
+      el.style.top  = `${window.innerHeight - bottom - el.offsetHeight}px`;
+      el.style.left = `${window.innerWidth  / 2 - width / 2}px`;
+    }
+    el.style.bottom    = 'auto';
+    el.style.transform = 'none';
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleMouseDown = useCallback((e: ReactMouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('button')) return;
+    e.preventDefault();
+    const el = panelRef.current;
+    if (!el) return;
+
+    // 現在の実際の位置を取得して top/left に固定
+    const rect = el.getBoundingClientRect();
+    el.style.top       = `${rect.top}px`;
+    el.style.left      = `${rect.left}px`;
+    el.style.bottom    = 'auto';
+    el.style.transform = 'none';
+
+    const startMouseX = e.clientX;
+    const startMouseY = e.clientY;
+    const startLeft   = rect.left;
+    const startTop    = rect.top;
+
+    el.style.transition = 'none';
+    el.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
+
+    const onMove = (ev: MouseEvent) => {
+      el.style.left = `${startLeft + ev.clientX - startMouseX}px`;
+      el.style.top  = `${startTop  + ev.clientY - startMouseY}px`;
+    };
+    const onUp = () => {
+      // ドラッグ終了時に位置を保存 → 次ステップへ引き継ぐ
+      _tourPanelPos = {
+        left: parseFloat(el.style.left),
+        top:  parseFloat(el.style.top),
+      };
+      el.style.transition = '';
+      el.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup',  onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup',  onUp);
+  }, []);
+
+  // 位置プロパティ（top/left/bottom/transform）は useLayoutEffect で設定するため
+  // style prop には含めない（含めると親の再レンダーで上書きされる）
+  const baseStyle: CSSProperties = {
+    position: 'fixed',
+    zIndex: 44,
+    width,
+    pointerEvents: 'auto',
+    background: 'white',
+    borderRadius: 16,
+    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+    padding: 16,
+    cursor: 'grab',
+  };
+
+  return (
+    <div ref={panelRef} style={baseStyle} onMouseDown={handleMouseDown}>
+      {/* ドラッグハンドル＋ステップ番号 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, userSelect: 'none' }}>
+        <span style={{ color: '#d1d5db', fontSize: 12 }}>⠿</span>
+        {stepLabel && (
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: 9999 }}>
+            ステップ {stepLabel}
+          </span>
+        )}
+      </div>
+      {children}
+    </div>
   );
 }
 
@@ -1905,6 +1992,9 @@ function TooltipSteps({
 }) {
   const [rect, setRect] = useState<DOMRect2 | null>(null);
   const [visible, setVisible] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const posAppliedRef = useRef(false); // 現ステップで位置を確定済みか
   const currentStep = TOUR_STEPS[step];
   const advance = step < TOUR_STEPS.length - 1 ? onNext : onComplete;
 
@@ -1915,8 +2005,11 @@ function TooltipSteps({
     setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
   }, [currentStep.targetId]);
 
+  // ステップ変化時: フラグをリセット
   useEffect(() => {
+    posAppliedRef.current = false;
     setVisible(false);
+    dragOffsetRef.current = { x: 0, y: 0 };
     const t = setTimeout(() => { updateRect(); setVisible(true); }, 50);
     return () => clearTimeout(t);
   }, [step, updateRect]);
@@ -1959,24 +2052,73 @@ function TooltipSteps({
     return () => { cancelAnimationFrame(id); window.removeEventListener('resize', measure); };
   }, [step, currentStep.waitForClickIn]);
 
+  // rect 確定後に位置を DOM に適用（_tourPanelPos 優先、なければターゲット相対位置）
+  useLayoutEffect(() => {
+    if (!rect || !tooltipRef.current || posAppliedRef.current) return;
+    posAppliedRef.current = true;
+    const el = tooltipRef.current;
+    const TW2 = 256, TH2 = 140;
+    if (_tourPanelPos) {
+      el.style.top  = `${_tourPanelPos.top}px`;
+      el.style.left = `${_tourPanelPos.left}px`;
+    } else {
+      let tT: number, tL: number;
+      if (currentStep.position === 'bottom') {
+        tT = rect.top + rect.height + 16;
+        tL = rect.left + rect.width / 2 - TW2 / 2;
+      } else {
+        tT = rect.top;
+        tL = currentStep.position === 'right'
+          ? rect.left + rect.width + 16
+          : rect.left - TW2 - 16;
+      }
+      if (tT + TH2 > window.innerHeight - 16) tT = window.innerHeight - TH2 - 16;
+      if (tT < 8) tT = 8;
+      el.style.top  = `${tT}px`;
+      el.style.left = `${tL}px`;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rect]);
+
+  // Direct DOM drag — top/left を直接操作
+  const handleDragStart = useCallback((e: ReactMouseEvent) => {
+    e.preventDefault();
+    const el = tooltipRef.current;
+    if (!el) return;
+    const baseLeft = parseFloat(el.style.left) || 0;
+    const baseTop  = parseFloat(el.style.top)  || 0;
+    const mouseStartX = e.clientX;
+    const mouseStartY = e.clientY;
+    el.style.transition = 'none';
+    el.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
+    const onMove = (ev: MouseEvent) => {
+      const dx = ev.clientX - mouseStartX;
+      const dy = ev.clientY - mouseStartY;
+      el.style.left = `${baseLeft + dx}px`;
+      el.style.top  = `${baseTop  + dy}px`;
+    };
+    const onUp = () => {
+      // ドラッグ終了時に位置を保存 → 次ステップへ引き継ぐ
+      _tourPanelPos = {
+        left: parseFloat(el.style.left),
+        top:  parseFloat(el.style.top),
+      };
+      el.style.transition = '';
+      el.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, []);
+
   if (!rect) return null;
 
-  const PAD = 8, TW = 256, TH = 140;
+  const PAD = 8, TW = 256;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-
-  let tTop: number, tLeft: number;
-  if (currentStep.position === 'bottom') {
-    tTop  = rect.top + rect.height + 16;
-    tLeft = rect.left + rect.width / 2 - TW / 2;
-  } else {
-    tTop  = rect.top;
-    tLeft = currentStep.position === 'right'
-      ? rect.left + rect.width + 16
-      : rect.left - TW - 16;
-  }
-  if (tTop + TH > window.innerHeight - 16) tTop = window.innerHeight - TH - 16;
-  if (tTop < 8) tTop = 8;
 
   const blockers = !currentStep.noSpotlight
     ? buildBlockers(
@@ -2020,38 +2162,41 @@ function TooltipSteps({
         />
       )}
       <div
-        className={`fixed z-50 bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 transition-all duration-200 ${
-          visible
-            ? 'opacity-100 translate-x-0 translate-y-0'
-            : currentStep.position === 'right' ? 'opacity-0 translate-x-2'
-            : currentStep.position === 'bottom' ? 'opacity-0 translate-y-2'
-            : 'opacity-0 -translate-x-2'
+        ref={tooltipRef}
+        onMouseDown={handleDragStart}
+        className={`fixed z-50 bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 cursor-grab select-none transition-opacity duration-200 ${
+          visible ? 'opacity-100' : 'opacity-0'
         }`}
-        style={{ top: tTop, left: tLeft, width: TW }}
+        style={{ width: TW }}
       >
+        {/* ドラッグハンドルヘッダー */}
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-gray-300 dark:text-gray-600 text-xs leading-none">⠿</span>
+          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
+            ステップ {MENU_STEP_INDEX + 1 + step + 1 + displayOffset} / {TOTAL_STEPS}
+          </span>
+        </div>
         <p className="text-sm text-gray-700 dark:text-gray-200 mb-3 leading-relaxed">
           {currentStep.message}
         </p>
-        <div className="flex justify-between items-center">
-          <span className="text-xs text-gray-400 dark:text-gray-500">
-            {MENU_STEP_INDEX + 1 + step + 1 + displayOffset} / {TOTAL_STEPS}
-          </span>
-          <div className="flex gap-2">
+        <div
+          className="flex justify-end items-center gap-2"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={onSkip}
+            className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors px-1 cursor-pointer select-auto"
+          >
+            スキップ
+          </button>
+          {!currentStep.waitForClick && !currentStep.waitForClickIn && (
             <button
-              onClick={onSkip}
-              className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors px-1"
+              onClick={advance}
+              className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg transition-colors cursor-pointer select-auto"
             >
-              スキップ
+              {step < TOUR_STEPS.length - 1 ? '次へ →' : '完了'}
             </button>
-            {!currentStep.waitForClick && !currentStep.waitForClickIn && (
-              <button
-                onClick={advance}
-                className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg transition-colors"
-              >
-                {step < TOUR_STEPS.length - 1 ? '次へ →' : '完了'}
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </>,
@@ -2311,5 +2456,7 @@ function TourOrchestrator({ onComplete, onSkip, onPhaseChange }: Omit<Props, 'ac
 
 export default function EditorTour({ active, onComplete, onSkip, onPhaseChange }: Props) {
   if (!active || typeof document === 'undefined') return null;
-  return <TourOrchestrator onComplete={onComplete} onSkip={onSkip} onPhaseChange={onPhaseChange} />;
+  const handleComplete = () => { _tourPanelPos = null; onComplete(); };
+  const handleSkip    = () => { _tourPanelPos = null; onSkip(); };
+  return <TourOrchestrator onComplete={handleComplete} onSkip={handleSkip} onPhaseChange={onPhaseChange} />;
 }
