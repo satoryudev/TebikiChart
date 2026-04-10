@@ -38,9 +38,10 @@ function WizardStepIndicator({ currentStep }: { currentStep: number }) {
 interface Props {
   onComplete: (data: { title: string; useTemplate: boolean }) => void;
   onCancel: () => void;
+  onboarding?: boolean;
 }
 
-export default function ScenarioWizard({ onComplete, onCancel }: Props) {
+export default function ScenarioWizard({ onComplete, onCancel, onboarding = false }: Props) {
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState(0);
   const [title, setTitle] = useState('');
@@ -61,7 +62,7 @@ export default function ScenarioWizard({ onComplete, onCancel }: Props) {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') handleClose(onCancel);
       if (e.key === 'Enter') {
-        if (step === 0 && title.trim()) setStep(1);
+        if (step === 0 && title.trim()) { if (onboarding) handleFinish(); else setStep(1); }
         else if (step === 1) handleFinish();
       }
     };
@@ -79,6 +80,7 @@ export default function ScenarioWizard({ onComplete, onCancel }: Props) {
     handleClose(() => onComplete({ title: title.trim(), useTemplate }));
   };
 
+  const maxStep = onboarding ? 0 : 1;
   const canNext = step === 0 ? !!title.trim() : true;
 
   return (
@@ -94,7 +96,7 @@ export default function ScenarioWizard({ onComplete, onCancel }: Props) {
           mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         }`}
       >
-        <WizardStepIndicator currentStep={step} />
+        {!onboarding && <WizardStepIndicator currentStep={step} />}
 
         <div className="px-8 pb-6 min-h-[280px]">
           {step === 0 && (
@@ -140,9 +142,7 @@ export default function ScenarioWizard({ onComplete, onCancel }: Props) {
                 >
                   <span className="text-3xl">📋</span>
                   <div>
-                    <p className="font-semibold text-gray-800 dark:text-gray-100">
-                      デモシナリオを使う
-                    </p>
+                    <p className="font-semibold text-gray-800 dark:text-gray-100">デモシナリオを使う</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">サンプルを編集してすぐに始められます</p>
                   </div>
                 </button>
@@ -159,15 +159,15 @@ export default function ScenarioWizard({ onComplete, onCancel }: Props) {
             {step === 0 ? 'キャンセル' : '← 戻る'}
           </button>
           <button
-            onClick={() => step < 1 ? setStep(step + 1) : handleFinish()}
+            onClick={() => step < maxStep ? setStep(step + 1) : handleFinish()}
             disabled={!canNext}
             className={`disabled:opacity-40 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 ${
-              step < 1
+              step < maxStep
                 ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
                 : 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
             }`}
           >
-            {step < 1 ? '次へ →' : '✓ 作成する'}
+            {step < maxStep ? '次へ →' : '✓ 作成する'}
           </button>
         </div>
       </div>

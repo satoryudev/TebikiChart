@@ -281,6 +281,7 @@ function SpeechEditor({ block }: { block: SpeechBlock }) {
       <div>
         <label className="label">セリフ</label>
         <textarea
+          id="speech-editor-message"
           className="input min-h-[80px] resize-y"
           value={block.message}
           onChange={(e) => updateBlock({ ...block, message: e.target.value })}
@@ -390,7 +391,7 @@ function InputSpotlightEditor({ block }: { block: InputSpotlightBlock }) {
           placeholder={isButton ? '例：「申請する」ボタンをクリックしてください。' : isElement ? '例：こちらの枠が申請フォームです。' : '例：郵便番号を入力してください。'}
         />
       </div>
-      <div>
+      <div id="spotlight-editor-target">
         <label className="label">対象ラベル</label>
         <PickOnlyInput
           value={block.targetId}

@@ -46,6 +46,7 @@ const PreviewPane = forwardRef<HTMLIFrameElement, Props>(
           </span>
 
           <button
+            id="preview-open-btn"
             onClick={() => fileInputRef.current?.click()}
             className="text-xs px-2 py-0.5 rounded border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400
               hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
@@ -62,7 +63,7 @@ const PreviewPane = forwardRef<HTMLIFrameElement, Props>(
           </span>
 
           <button
-            id="preview-play-btn"
+            id="preview-run-btn"
             onClick={onPlay}
             disabled={isPlaying}
             className="text-xs px-2.5 py-0.5 rounded font-semibold bg-green-500 dark:bg-green-700 text-white
@@ -71,6 +72,7 @@ const PreviewPane = forwardRef<HTMLIFrameElement, Props>(
             ▶ 実行
           </button>
           <button
+            id="preview-stop-btn"
             onClick={onStop}
             disabled={!isPlaying}
             className="text-xs px-2.5 py-0.5 rounded font-semibold bg-gray-400 dark:bg-gray-600 text-white
@@ -89,7 +91,7 @@ const PreviewPane = forwardRef<HTMLIFrameElement, Props>(
           </button>
         </div>
 
-        <iframe ref={ref} src={src} className="flex-1 w-full border-none dark:brightness-75" title="プレビュー" />
+        <iframe ref={ref} id="preview-iframe" src={src} className="flex-1 w-full border-none dark:brightness-75" title="プレビュー" />
       </div>
     )
   }

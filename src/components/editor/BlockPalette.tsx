@@ -67,6 +67,7 @@ function DraggablePaletteItem({ item, itemRef, disabled }: DraggableItemProps) {
       }}
       {...attributes}
       {...listeners}
+      data-block-type={item.type}
       tabIndex={disabled ? -1 : 0}
       title={disabled ? '分岐の中には条件分岐を追加できません' : undefined}
       className={`w-full text-left p-3 rounded-lg border transition-colors select-none ${

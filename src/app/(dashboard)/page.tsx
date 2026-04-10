@@ -9,11 +9,19 @@ import WelcomeModal from '@/components/onboarding/WelcomeModal'
 import ScenarioWizard from '@/components/onboarding/ScenarioWizard'
 import ScenarioTaskCard from '@/components/dashboard/ScenarioTaskCard'
 
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour >= 5 && hour < 12) return 'おはようございます'
+  if (hour >= 12 && hour < 18) return 'こんにちは'
+  return 'こんばんは'
+}
+
 export default function HomePage() {
   const router = useRouter()
   const { hasVisited, markVisited, resetOnboarding } = useOnboarding()
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [wizardOpen, setWizardOpen] = useState(false)
+  const [wizardOnboarding, setWizardOnboarding] = useState(false)
   const [welcomeOpen, setWelcomeOpen] = useState(false)
 
   useEffect(() => {
@@ -26,7 +34,7 @@ export default function HomePage() {
     return () => document.removeEventListener('tebiki-chart:open-onboarding', handler)
   }, [])
 
-  const openWizard = () => setWizardOpen(true)
+  const openWizard = (onboarding = false) => { setWizardOnboarding(onboarding); setWizardOpen(true) }
 
   const uniqueTitle = (base: string): string => {
     const titles = scenarios.map((s) => s.title)
@@ -79,7 +87,7 @@ export default function HomePage() {
     <div className="min-h-full">
       {/* Welcome banner */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-7">
-        <h1 className="text-2xl font-bold text-white">おはようございます 👋</h1>
+        <h1 className="text-2xl font-bold text-white">{getGreeting()} 👋</h1>
         <p className="text-blue-200 text-sm mt-1">行政手続きナビゲーター管理ダッシュボード</p>
         <div className="flex flex-wrap gap-2 mt-4">
           <span className="bg-white/20 text-white text-xs font-medium px-3 py-1 rounded-full">
@@ -96,7 +104,7 @@ export default function HomePage() {
             <span className="ml-2 text-sm font-normal text-gray-400 dark:text-gray-500">({scenarios.length}件)</span>
           </h2>
           <button
-            onClick={openWizard}
+            onClick={() => openWizard()}
             className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
               px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
           >
@@ -110,7 +118,7 @@ export default function HomePage() {
             <div className="text-5xl mb-4">📭</div>
             <p className="text-gray-500 dark:text-gray-400 mb-5">シナリオがまだありません。最初のシナリオを作ってみましょう！</p>
             <button
-              onClick={openWizard}
+              onClick={() => openWizard()}
               className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium text-sm transition-colors"
             >
               最初のシナリオを作る →
@@ -128,7 +136,7 @@ export default function HomePage() {
       {/* Welcome modal (first visit or triggered from sidebar) */}
       {(!hasVisited || welcomeOpen) && (
         <WelcomeModal
-          onStart={() => { resetOnboarding(); markVisited(); setWelcomeOpen(false); openWizard() }}
+          onStart={() => { resetOnboarding(); markVisited(); setWelcomeOpen(false); openWizard(true) }}
           onSkip={() => { markVisited(); setWelcomeOpen(false) }}
         />
       )}
@@ -138,6 +146,7 @@ export default function HomePage() {
         <ScenarioWizard
           onComplete={handleWizardComplete}
           onCancel={() => setWizardOpen(false)}
+          onboarding={wizardOnboarding}
         />
       )}
     </div>

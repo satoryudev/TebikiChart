@@ -16,6 +16,7 @@ export default function ThemeToggle({ className = '' }: Props) {
 
   return (
     <button
+      id="theme-toggle-btn"
       onClick={handleClick}
       title={isDark ? 'ライトモードに切り替え' : 'ダークモードに切り替え'}
       className={`text-base leading-none ${className}`}

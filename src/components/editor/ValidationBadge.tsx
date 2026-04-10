@@ -61,6 +61,7 @@ export default function ValidationBadge() {
   return (
     <div className="relative" ref={popoverRef}>
       <button
+        id="validation-badge-btn"
         ref={badgeRef}
         onClick={() => setOpen((v) => !v)}
         className={`text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${badgeCls}`}

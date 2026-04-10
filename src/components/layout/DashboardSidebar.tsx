@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import ThemeToggle from '@/components/ThemeToggle'
 
 const NAV_ITEMS = [
@@ -16,7 +17,7 @@ export default function DashboardSidebar() {
       {/* Logo */}
       <div className="px-5 py-5 border-b border-slate-700/50">
         <div className="flex items-center gap-2">
-          <span className="text-xl">🗺️</span>
+          <Image src="/hck_icon.png" alt="Tebiki Chart" width={28} height={28} className="rounded" />
           <span className="text-lg font-bold text-white">Tebiki Chart</span>
         </div>
         <p className="text-xs text-slate-400 mt-0.5 pl-8">行政手続きナビゲーター</p>

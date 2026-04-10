@@ -17,7 +17,7 @@ export default function ValidationDialog({ issues, onClose, onJumpToBlock }: Pro
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm mx-4 overflow-hidden">
+      <div id="validation-dialog" className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm mx-4 overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/30 border-b border-red-100 dark:border-red-800">
           <span className="text-red-600 dark:text-red-400 text-base font-bold">✕</span>
@@ -32,7 +32,7 @@ export default function ValidationDialog({ issues, onClose, onJumpToBlock }: Pro
         </div>
 
         {/* Issue list */}
-        <ul className="max-h-60 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
+        <ul id="validation-issues-list" className="max-h-60 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
           {issues.map((issue, i) => (
             <li key={i}>
               <button

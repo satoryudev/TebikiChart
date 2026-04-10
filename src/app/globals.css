@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --tour-dash-1: rgba(99,102,241,0.4);
+  --tour-dash-2: rgba(59,130,246,0.4);
+  --tour-drag-dash: rgba(0,0,0,0.3);
+}
+.dark {
+  --tour-dash-1: rgba(255,255,255,0.7);
+  --tour-dash-2: rgba(255,255,255,0.7);
+  --tour-drag-dash: rgba(255,255,255,0.7);
+}
+
 @layer components {
   .input {
     @apply w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm bg-white text-gray-900
@@ -15,6 +26,14 @@
 }
 
 @layer utilities {
+  @keyframes tour-btn-pulse {
+    0%, 100% { box-shadow: 0 0 0 0px rgba(59,130,246,0.7), 0 0 0 0px rgba(59,130,246,0.4); }
+    50%       { box-shadow: 0 0 0 6px rgba(59,130,246,0.2), 0 0 0 12px rgba(59,130,246,0); }
+  }
+  .animate-tour-pulse {
+    animation: tour-btn-pulse 1.4s ease-out infinite;
+  }
+
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
     20%       { transform: translateX(-4px); }
