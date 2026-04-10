@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>確定申告 オンライン申請 - e-Tax 国税電子申告・納税システム</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    /* ── ヘッダー ── */
+    .site-header {
+      background: #1a3a5c;
+      color: white;
+      padding: 0 24px;
+    }
+    .site-header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 56px;
+    }
+    .site-logo {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      opacity: 0.95;
+    }
+    .site-logo span {
+      display: inline-block;
+      background: #e05c00;
+      color: white;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-right: 8px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    .site-header-sub {
+      font-size: 11px;
+      opacity: 0.65;
+      margin-left: auto;
+    }
+
+    /* ── パンくずリスト ── */
+    .breadcrumb {
+      background: #e8edf2;
+      border-bottom: 1px solid #d1dbe6;
+      padding: 0 24px;
+    }
+    .breadcrumb-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 36px;
+      font-size: 12px;
+      color: #4a6580;
+    }
+    .breadcrumb-inner a { color: #2563eb; text-decoration: none; }
+    .breadcrumb-inner a:hover { text-decoration: underline; }
+    .breadcrumb-sep { color: #94a3b8; }
+
+    /* ── メインコンテンツ ── */
+    .main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    /* ── ページタイトルブロック ── */
+    .page-title-block {
+      background: white;
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      border-left: 5px solid #1a3a5c;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .page-title-icon {
+      font-size: 36px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .page-title-text h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a3a5c;
+      margin-bottom: 6px;
+    }
+    .page-title-text p {
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+    .notice-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      color: #92400e;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 99px;
+      margin-top: 8px;
+    }
+
+    /* ── ステップ表示 ── */
+    .step-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 28px;
+      background: white;
+      border-radius: 10px;
+      padding: 16px 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+      position: relative;
+    }
+    .step-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: #e2e8f0;
+      z-index: 0;
+    }
+    .step-item.active:not(:last-child)::after { background: #e05c00; }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      background: #e2e8f0;
+      color: #94a3b8;
+      position: relative;
+      z-index: 1;
+    }
+    .step-item.active .step-num {
+      background: #e05c00;
+      color: white;
+    }
+    .step-item.done .step-num {
+      background: #22c55e;
+      color: white;
+    }
+    .step-label {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .step-item.active .step-label { color: #e05c00; }
+    .step-item.done .step-label { color: #22c55e; }
+
+    /* ── セクション ── */
+    .section {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .section-header {
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-header-icon { font-size: 18px; }
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a3a5c;
+    }
+    .section-body { padding: 24px; }
+
+    /* ── フォームパーツ ── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .form-row.full { grid-template-columns: 1fr; }
+    .form-row.thirds { grid-template-columns: 1fr 1fr 1fr; }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+    .form-group:last-child { margin-bottom: 0; }
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .required {
+      background: #ef4444;
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .optional {
+      background: #e2e8f0;
+      color: #64748b;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .form-hint {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: white;
+      color: #1a202c;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+      appearance: none;
+    }
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="date"]:focus,
+    select:focus {
+      border-color: #e05c00;
+      box-shadow: 0 0 0 3px rgba(224,92,0,0.15);
+    }
+    .input-suffix-wrap {
+      display: flex;
+      align-items: center;
+    }
+    .input-suffix-wrap input { border-radius: 8px 0 0 8px; }
+    .input-suffix {
+      padding: 10px 12px;
+      background: #f1f5f9;
+      border: 1.5px solid #d1d5db;
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      color: #64748b;
+      white-space: nowrap;
+    }
+
+    /* セレクトの矢印 */
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+    .select-wrap select { padding-right: 32px; }
+
+    /* ── 注意書きボックス ── */
+    .info-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: #1e40af;
+      line-height: 1.7;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 8px;
+    }
+    .info-box-icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+
+    .warn-box {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: #9a3412;
+      line-height: 1.7;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 8px;
+    }
+
+    /* ── 金額入力グループ ── */
+    .amount-group {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+    .amount-group-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── 同意チェック ── */
+    .consent-box {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 24px;
+    }
+    .consent-box p {
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a202c;
+    }
+    .checkbox-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #e05c00;
+      flex-shrink: 0;
+    }
+
+    /* ── 送信ボタン ── */
+    .submit-area {
+      text-align: center;
+      padding-top: 8px;
+    }
+    #submit-btn {
+      background: #1a3a5c;
+      color: white;
+      border: none;
+      padding: 14px 56px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 4px 14px rgba(26,58,92,0.35);
+      font-family: inherit;
+      letter-spacing: 0.04em;
+    }
+    #submit-btn:hover {
+      background: #234e7a;
+      box-shadow: 0 6px 20px rgba(26,58,92,0.4);
+      transform: translateY(-1px);
+    }
+    #submit-btn:active { transform: translateY(0); }
+    .submit-note {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 10px;
+    }
+
+    /* ── フッター ── */
+    .site-footer {
+      background: #1a3a5c;
+      color: rgba(255,255,255,0.55);
+      text-align: center;
+      padding: 20px 24px;
+      font-size: 12px;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ヘッダー -->
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-logo">
+        <span>e-Tax</span>国税電子申告・納税システム
+      </div>
+      <div class="site-header-sub">ログイン中：山田 太郎 さん</div>
+    </div>
+  </header>
+
+  <!-- パンくずリスト -->
+  <nav class="breadcrumb">
+    <div class="breadcrumb-inner">
+      <a href="#">ホーム</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="#">所得税</a>
+      <span class="breadcrumb-sep">›</span>
+      <span>確定申告書 作成・提出</span>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ページタイトル -->
+    <div class="page-title-block">
+      <div class="page-title-icon">📄</div>
+      <div class="page-title-text">
+        <h1>確定申告書 オンライン提出</h1>
+        <p>令和6年分（2024年分）の所得税確定申告書をオンラインで作成・提出します。<br>
+          提出期限は <strong>3月15日</strong> です。マイナンバーカードをお手元にご用意ください。</p>
+        <div class="notice-badge">⚠️ 送信後の取り消しはできません</div>
+      </div>
+    </div>
+
+    <!-- ステップ表示 -->
+    <div class="step-bar">
+      <div class="step-item active">
+        <div class="step-num">1</div>
+        <div class="step-label">基本情報</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-label">収入・所得</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-label">控除</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-label">税額確認</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-label">提出完了</div>
+      </div>
+    </div>
+
+    <!-- セクション1: 申告者情報 -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">👤</span>
+        <span class="section-title">申告者情報</span>
+      </div>
+      <div class="section-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name-input">氏名 <span class="required">必須</span></label>
+            <input type="text" id="name-input" placeholder="山田 太郎">
+            <span class="form-hint">住民票上の氏名をご記入ください</span>
+          </div>
+          <div class="form-group">
+            <label for="name-kana">氏名（フリガナ） <span class="required">必須</span></label>
+            <input type="text" id="name-kana" placeholder="ヤマダ タロウ">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="birth-date">生年月日 <span class="required">必須</span></label>
+            <input type="date" id="birth-date" value="1985-01-01">
+          </div>
+          <div class="form-group">
+            <label for="occupation">職業 <span class="required">必須</span></label>
+            <div class="select-wrap">
+              <select id="occupation">
+                <option value="">選択してください</option>
+                <option value="freelance">フリーランス・個人事業主</option>
+                <option value="company">会社員（副業あり）</option>
+                <option value="retired">退職者</option>
+                <option value="other">その他</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="mynumber-input">マイナンバー <span class="required">必須</span></label>
+            <input type="text" id="mynumber-input" placeholder="000000000000" maxlength="12">
+            <span class="form-hint">12桁の番号（ハイフンなし）</span>
+          </div>
+          <div class="form-group">
+            <label for="phone">電話番号 <span class="required">必須</span></label>
+            <input type="text" id="phone" placeholder="09012345678">
+            <span class="form-hint">日中に連絡が取れる番号</span>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group" style="margin-bottom:0">
+            <label for="address-input">住所 <span class="required">必須</span></label>
+            <input type="text" id="address-input" placeholder="東京都新宿区新宿1-1-1">
+            <span class="form-hint">申告時点（令和6年12月31日現在）の住所</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- セクション2: 収入情報 -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">💴</span>
+        <span class="section-title">収入・所得の入力</span>
+      </div>
+      <div class="section-body">
+        <div class="info-box">
+          <span class="info-box-icon">ℹ️</span>
+          <span>源泉徴収票や支払調書をもとに入力してください。複数の収入がある場合はすべて合算して入力してください。</span>
+        </div>
+
+        <div class="amount-group">
+          <div class="amount-group-title">給与所得</div>
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom:0">
+              <label for="salary-income">給与収入金額 <span class="required">必須</span></label>
+              <div class="input-suffix-wrap">
+                <input type="number" id="salary-income" placeholder="0" min="0">
+                <span class="input-suffix">円</span>
+              </div>
+              <span class="form-hint">源泉徴収票の「支払金額」欄</span>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label for="salary-tax">源泉徴収税額 <span class="required">必須</span></label>
+              <div class="input-suffix-wrap">
+                <input type="number" id="salary-tax" placeholder="0" min="0">
+                <span class="input-suffix">円</span>
+              </div>
+              <span class="form-hint">源泉徴収票の「源泉徴収税額」欄</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="amount-group">
+          <div class="amount-group-title">事業所得・副業収入</div>
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom:0">
+              <label for="business-income">事業収入金額 <span class="optional">任意</span></label>
+              <div class="input-suffix-wrap">
+                <input type="number" id="business-income" placeholder="0" min="0">
+                <span class="input-suffix">円</span>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label for="business-expense">必要経費 <span class="optional">任意</span></label>
+              <div class="input-suffix-wrap">
+                <input type="number" id="business-expense" placeholder="0" min="0">
+                <span class="input-suffix">円</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="amount-group" style="margin-bottom:0">
+          <div class="amount-group-title">その他の所得</div>
+          <div class="form-row thirds">
+            <div class="form-group" style="margin-bottom:0">
+              <label for="other-income1">不動産所得 <span class="optional">任意</span></label>
+              <div class="input-suffix-wrap">
+                <input type="number" id="other-income1" placeholder="0" min="0">
+                <span class="input-suffix">円</span>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label for="other-income2">配当所得 <span class="optional">任意</span></label>
+              <div class="input-suffix-wrap">
+                <input type="number" id="other-income2" placeholder="0" min="0">
+                <span class="input-suffix">円</span>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label for="other-income3">一時所得 <span class="optional">任意</span></label>
+              <div class="input-suffix-wrap">
+                <input type="number" id="other-income3" placeholder="0" min="0">
+                <span class="input-suffix">円</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- セクション3: 控除 -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">🏥</span>
+        <span class="section-title">各種控除の入力</span>
+      </div>
+      <div class="section-body">
+        <div class="warn-box">
+          <span class="info-box-icon">⚠️</span>
+          <span>控除の申告には証明書類が必要です。医療費控除は領収書・明細書、生命保険控除は控除証明書をご用意ください。</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="medical-deduction">医療費控除 <span class="optional">任意</span></label>
+            <div class="input-suffix-wrap">
+              <input type="number" id="medical-deduction" placeholder="0" min="0">
+              <span class="input-suffix">円</span>
+            </div>
+            <span class="form-hint">年間医療費 − 10万円（または総所得×5%）</span>
+          </div>
+          <div class="form-group">
+            <label for="insurance-deduction">生命保険料控除 <span class="optional">任意</span></label>
+            <div class="input-suffix-wrap">
+              <input type="number" id="insurance-deduction" placeholder="0" min="0">
+              <span class="input-suffix">円</span>
+            </div>
+            <span class="form-hint">一般・介護医療・個人年金の合計（上限12万円）</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="hometown-tax">ふるさと納税（寄附金控除） <span class="optional">任意</span></label>
+            <div class="input-suffix-wrap">
+              <input type="number" id="hometown-tax" placeholder="0" min="0">
+              <span class="input-suffix">円</span>
+            </div>
+            <span class="form-hint">ワンストップ特例を利用した場合は不要</span>
+          </div>
+          <div class="form-group">
+            <label for="housing-loan">住宅ローン控除 <span class="optional">任意</span></label>
+            <div class="input-suffix-wrap">
+              <input type="number" id="housing-loan" placeholder="0" min="0">
+              <span class="input-suffix">円</span>
+            </div>
+            <span class="form-hint">年末残高証明書をもとに入力</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="spouse-deduction">配偶者控除 <span class="optional">任意</span></label>
+            <div class="select-wrap">
+              <select id="spouse-deduction">
+                <option value="none">なし</option>
+                <option value="38">配偶者控除（38万円）</option>
+                <option value="26">配偶者特別控除（最大26万円）</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dependent-count">扶養控除（人数） <span class="optional">任意</span></label>
+            <div class="select-wrap">
+              <select id="dependent-count">
+                <option value="0">0人</option>
+                <option value="1">1人</option>
+                <option value="2">2人</option>
+                <option value="3">3人以上</option>
+              </select>
+            </div>
+            <span class="form-hint">16歳以上の扶養親族の人数</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- セクション4: 申告区分・還付口座 -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">🏦</span>
+        <span class="section-title">還付金の受取口座</span>
+      </div>
+      <div class="section-body">
+        <div class="info-box">
+          <span class="info-box-icon">ℹ️</span>
+          <span>税額が源泉徴収額を下回る場合、差額が還付されます。還付先の口座を入力してください。</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bank-name">金融機関名 <span class="required">必須</span></label>
+            <input type="text" id="bank-name" placeholder="〇〇銀行">
+          </div>
+          <div class="form-group">
+            <label for="branch-name">支店名 <span class="required">必須</span></label>
+            <input type="text" id="branch-name" placeholder="新宿支店">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="account-type">口座種別 <span class="required">必須</span></label>
+            <div class="select-wrap">
+              <select id="account-type">
+                <option value="futsu">普通</option>
+                <option value="touza">当座</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="account-number">口座番号 <span class="required">必須</span></label>
+            <input type="text" id="account-number" placeholder="1234567" maxlength="7">
+            <span class="form-hint">7桁の口座番号</span>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group" style="margin-bottom:0">
+            <label for="account-holder">口座名義（カタカナ） <span class="required">必須</span></label>
+            <input type="text" id="account-holder" placeholder="ヤマダ タロウ">
+            <span class="form-hint">通帳に記載されている名義と同一のカタカナ表記</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 同意・提出 -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-header-icon">📋</span>
+        <span class="section-title">申告内容の確認・同意</span>
+      </div>
+      <div class="section-body">
+        <div class="consent-box">
+          <p>
+            入力した内容は所得税法に基づき申告されます。虚偽の申告は所得税法第238条により罰則の対象となります。
+            また、申告後の内容修正は「修正申告」または「更正の請求」の手続きが別途必要です。
+            提出前に入力内容をもう一度ご確認ください。
+          </p>
+          <label class="checkbox-label">
+            <input type="checkbox" id="consent-check">
+            上記の注意事項を確認し、入力内容が正確であることを誓約します
+          </label>
+        </div>
+
+        <div class="submit-area">
+          <button id="submit-btn" type="button">申告書を提出する →</button>
+          <p class="submit-note">提出後、受付番号がメールに届きます。税務署での処理には数週間かかる場合があります。</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    &copy; e-Tax 国税電子申告・納税システム &nbsp;|&nbsp; 個人情報保護方針 &nbsp;|&nbsp; 利用規約 &nbsp;|&nbsp; お問い合わせ（国税局）
+  </footer>
+
+  <script>document.write('<scr'+'ipt src="/embed.js?v='+Date.now()+'"><\/scr'+'ipt>')</script>
+  <script>
+    const isPreviewMode = new URLSearchParams(location.search).has('preview')
+    if (!isPreviewMode) {
+      TebikiChart.start('./demo-scenario.json')
+    }
+  </script>
+<!-- TebikiChart Tutorial Start -->
+<script>
+"use strict";var TebikiChart=(()=>{var D=Object.defineProperty;var ce=Object.getOwnPropertyDescriptor;var pe=Object.getOwnPropertyNames;var ue=Object.prototype.hasOwnProperty;var me=(n,t)=>{for(var e in t)D(n,e,{get:t[e],enumerable:!0})},xe=(n,t,e,o)=>{if(t&&typeof t=="object"||typeof t=="function")for(let i of pe(t))!ue.call(n,i)&&i!==e&&D(n,i,{get:()=>t[i],enumerable:!(o=ce(t,i))||o.enumerable});return n};var ge=n=>xe(D({},"__esModule",{value:!0}),n);var Le={};me(Le,{start:()=>Be,startWithPrompt:()=>ke,startWithScenario:()=>Se,stop:()=>ze});var z=0,_=0;function G(n){z=0,_=n}function X(n,t){z=n,_=t}function Z(n){z=n}function U(){z=0,_=0}function N(){return{current:z,total:_}}var K="tq-bubble";function be(n){return n==="happy"?"\u{1F60A}":n==="thinking"?"\u{1F914}":"\u{1F610}"}function J(n){return`
+    <div style="
+      width:56px;height:56px;border-radius:50%;
+      background:linear-gradient(135deg,#3b82f6,#1d4ed8);
+      display:flex;align-items:center;justify-content:center;
+      font-size:28px;flex-shrink:0;
+      box-shadow:0 2px 8px rgba(0,0,0,0.3);
+    ">${be(n)}</div>
+  `}function Q(n,t){let e=t>0?Math.min(100,Math.round(n/t*100)):0,o=document.createElement("div");o.style.cssText="display:flex;align-items:center;gap:8px;margin-bottom:10px;";let i=document.createElement("div");i.style.cssText=`
+    flex:1;height:4px;background:#f3f4f6;border-radius:9999px;overflow:hidden;
+  `;let s=document.createElement("div");s.style.cssText=`
+    height:100%;width:${e}%;background:#f97316;border-radius:9999px;
+    transition:width 0.4s ease;
+  `;let c=document.createElement("span");return c.style.cssText="font-size:11px;color:#9ca3af;white-space:nowrap;flex-shrink:0;",c.textContent=`${n} / ${t}`,i.appendChild(s),o.appendChild(i),o.appendChild(c),o}function h(n,t,e,o=!1,i){f();let{current:s,total:c}=N(),r=document.createElement("div");r.id=K,r.style.cssText=`
+    position:fixed;bottom:24px;left:24px;
+    display:flex;align-items:flex-end;gap:12px;
+    z-index:100000;max-width:420px;
+    animation:tq-slide-in 0.3s ease;
+  `;let d=document.createElement("div");d.style.cssText=`
+    background:white;border-radius:16px 16px 16px 4px;
+    padding:14px 16px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.15);
+    flex:1;position:relative;
+  `,c>0&&d.appendChild(Q(s,c));let m=document.createElement("p");m.style.cssText=`
+    margin:0 0 10px;font-size:14px;line-height:1.6;
+    color:#1f2937;min-height:20px;
+  `;let p=0,u=()=>{p<n.length&&(m.textContent+=n[p++],setTimeout(u,16))};if(u(),d.appendChild(m),i||!o){let l=document.createElement("div");if(l.style.cssText="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:4px;",i){let a=document.createElement("button");a.textContent=i.label,a.style.cssText=`
+        background:transparent;border:1.5px solid #0d9488;
+        color:#0d9488;padding:5px 12px;border-radius:8px;font-size:12px;
+        cursor:pointer;font-weight:600;transition:all 0.15s;
+      `,a.onmouseover=()=>{a.style.background="#0d9488",a.style.color="white"},a.onmouseout=()=>{a.style.background="transparent",a.style.color="#0d9488"},a.onmousedown=b=>b.preventDefault(),a.onclick=i.onClick,l.appendChild(a)}if(!o){let a=document.createElement("button");a.textContent="\u6B21\u3078 \u2192",a.style.cssText=`
+        background:#3b82f6;color:white;border:none;
+        padding:6px 16px;border-radius:8px;font-size:13px;
+        cursor:pointer;font-weight:600;transition:background 0.15s;
+      `,a.onmouseover=()=>{a.style.background="#2563eb"},a.onmouseout=()=>{a.style.background="#3b82f6"},a.onclick=()=>{f(),t()},l.appendChild(a)}d.appendChild(l)}if(r.innerHTML=J(e),r.appendChild(d),document.body.appendChild(r),!document.getElementById("tq-styles")){let l=document.createElement("style");l.id="tq-styles",l.textContent=`
+      @keyframes tq-slide-in {
+        from { opacity:0; transform:translateY(20px); }
+        to { opacity:1; transform:translateY(0); }
+      }
+      @keyframes tq-pulse-ring {
+        0% { transform:scale(1); opacity:0.8; }
+        100% { transform:scale(1.5); opacity:0; }
+      }
+    `,document.head.appendChild(l)}}var fe={green:{bg:"#22c55e",text:"white"},red:{bg:"#ef4444",text:"white"},blue:{bg:"#3b82f6",text:"white"},yellow:{bg:"#eab308",text:"white"},purple:{bg:"#a855f7",text:"white"},orange:{bg:"#f97316",text:"white"},pink:{bg:"#ec4899",text:"white"},cyan:{bg:"#06b6d4",text:"white"},amber:{bg:"#f59e0b",text:"white"},indigo:{bg:"#6366f1",text:"white"},lime:{bg:"#84cc16",text:"white"},white:{bg:"#f9fafb",text:"#374151"}};function ee(n,t){f();let{current:e,total:o}=N(),i=document.createElement("div");i.id=K,i.style.cssText=`
+    position:fixed;bottom:24px;left:24px;
+    display:flex;align-items:flex-end;gap:12px;
+    z-index:100000;max-width:420px;
+    animation:tq-slide-in 0.3s ease;
+  `;let s=document.createElement("div");s.style.cssText=`
+    background:white;border-radius:16px 16px 16px 4px;
+    padding:14px 16px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.15);
+    flex:1;
+  `,o>0&&s.appendChild(Q(e,o));let c=document.createElement("p");c.style.cssText=`
+    margin:0 0 12px;font-size:14px;line-height:1.6;color:#1f2937;font-weight:600;
+  `;let r=0,d=()=>{r<n.length&&(c.textContent+=n[r++],setTimeout(d,16))};d();let m=document.createElement("div");m.style.cssText="display:flex;gap:8px;flex-wrap:wrap;";for(let p of t){let u=fe[p.color]??{bg:"#6b7280",text:"white"},l=document.createElement("button");l.textContent=p.label,l.style.cssText=`
+      background:${u.bg};color:${u.text};border:none;
+      padding:6px 18px;border-radius:8px;font-size:13px;
+      cursor:pointer;font-weight:600;flex:1;min-width:80px;
+      transition:opacity 0.15s;
+    `,l.onmouseover=()=>{l.style.opacity="0.85"},l.onmouseout=()=>{l.style.opacity="1"},l.onclick=()=>{f(),p.onSelect()},m.appendChild(l)}s.appendChild(c),s.appendChild(m),i.innerHTML=J("thinking"),i.appendChild(s),document.body.appendChild(i)}function f(){var n;(n=document.getElementById(K))==null||n.remove()}var te="tq-overlay",he="tq-ring",j=null,$=null,ne="";function q(){ne=document.body.style.overflow,document.body.style.overflow="hidden"}function B(){document.body.style.overflow=ne}function H(n,t,e,o,i,s,c=!0){let r="http://www.w3.org/2000/svg",d=document.createElementNS(r,"svg");d.setAttribute("width","100%"),d.setAttribute("height","100%"),d.style.cssText="position:absolute;inset:0;width:100%;height:100%;";let m=document.createElementNS(r,"defs"),p=document.createElementNS(r,"mask");p.id=s;let u=document.createElementNS(r,"rect");u.setAttribute("x","0"),u.setAttribute("y","0"),u.setAttribute("width","100%"),u.setAttribute("height","100%"),u.setAttribute("fill","white");let l=document.createElementNS(r,"rect");l.setAttribute("x",String(t)),l.setAttribute("y",String(e)),l.setAttribute("width",String(o-t)),l.setAttribute("height",String(i-e)),l.setAttribute("rx","4"),l.setAttribute("fill","black"),p.appendChild(u),p.appendChild(l),m.appendChild(p),d.appendChild(m);let a=document.createElementNS(r,"rect");a.setAttribute("x","0"),a.setAttribute("y","0"),a.setAttribute("width","100%"),a.setAttribute("height","100%"),a.setAttribute("fill","rgba(0,0,0,0.75)"),a.setAttribute("mask",`url(#${s})`),c||(a.style.pointerEvents="none"),d.appendChild(a),n.appendChild(d)}function R(){L();let n=document.createElement("div");n.id=te,n.style.cssText=`
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.75);
+    z-index:99998;
+    pointer-events:all;
+  `,document.body.appendChild(n)}function L(){var n,t;j==null||j(),$==null||$(),$=null,(n=document.getElementById(te))==null||n.remove(),(t=document.getElementById(he))==null||t.remove(),B()}var V="tq-doc-modal";function ye(n,t){if(n==="custom"&&t)return`<img src="${t}" alt="\u66F8\u985E\u306E\u898B\u672C" style="max-width:100%;border-radius:8px;">`;if(n.startsWith("cdoc-")){try{let i=JSON.parse(localStorage.getItem("tq_custom_doc_types")??"[]").find(s=>s.id===n);if(i)return`<img src="${i.imageBase64}" alt="${i.label}" style="max-width:100%;border-radius:8px;">`}catch{}return'<p style="color:#6b7280;text-align:center;">\u753B\u50CF\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093</p>'}let e={"mynumber-card":`
+      <div style="
+        width:340px;height:200px;background:linear-gradient(135deg,#1e40af,#3b82f6);
+        border-radius:12px;padding:16px;color:white;
+        display:flex;flex-direction:column;justify-content:space-between;
+        box-shadow:0 4px 20px rgba(0,0,0,0.2);
+      ">
+        <div style="font-size:11px;opacity:0.8">\u500B\u4EBA\u756A\u53F7\u30AB\u30FC\u30C9 (\u30DE\u30A4\u30CA\u30F3\u30D0\u30FC\u30AB\u30FC\u30C9)</div>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div style="width:60px;height:80px;background:rgba(255,255,255,0.3);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:28px;">\u{1F464}</div>
+          <div>
+            <div style="font-size:16px;font-weight:bold;margin-bottom:4px;">\u5C71\u7530 \u592A\u90CE</div>
+            <div style="font-size:11px;opacity:0.8">\u751F\u5E74\u6708\u65E5: \u662D\u548C60\u5E741\u67081\u65E5</div>
+            <div style="font-size:11px;opacity:0.8">\u6027\u5225: \u7537</div>
+            <div style="font-size:11px;opacity:0.8;margin-top:8px;">\u4F4F\u6240: \u6771\u4EAC\u90FD\u5343\u4EE3\u7530\u533A...</div>
+          </div>
+        </div>
+        <div style="font-size:10px;opacity:0.7">\u6709\u52B9\u671F\u9650: \u4EE4\u548C15\u5E741\u67081\u65E5\u307E\u3067\u6709\u52B9</div>
+      </div>
+    `,receipt:`
+      <div style="
+        width:280px;background:white;border:1px solid #e5e7eb;
+        border-radius:8px;padding:20px;
+        font-family:monospace;font-size:12px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      ">
+        <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:12px;border-bottom:2px solid #1f2937;padding-bottom:8px;">\u9818 \u53CE \u66F8</div>
+        <div style="margin-bottom:8px;">\u5C71\u7530 \u592A\u90CE \u69D8</div>
+        <div style="margin:12px 0;padding:8px;background:#f9fafb;border-radius:4px;">
+          <div style="display:flex;justify-content:space-between;">
+            <span>\u624B\u6570\u6599</span><span>\xA5500</span>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-weight:bold;border-top:1px solid #e5e7eb;padding-top:8px;">
+          <span>\u5408\u8A08</span><span>\xA5500</span>
+        </div>
+        <div style="margin-top:16px;text-align:right;font-size:10px;color:#6b7280;">
+          \u25CB\u25CB\u5E02\u5F79\u6240<br>\u4EE4\u548C6\u5E741\u67081\u65E5
+        </div>
+      </div>
+    `,"residence-certificate":`
+      <div style="
+        width:320px;background:white;border:2px solid #1f2937;
+        border-radius:4px;padding:20px;
+        font-size:12px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      ">
+        <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:16px;">\u4F4F \u6C11 \u7968 \u306E \u5199 \u3057</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <tr><td style="padding:4px 8px;border:1px solid #d1d5db;background:#f9fafb;width:100px;">\u6C0F\u540D</td><td style="padding:4px 8px;border:1px solid #d1d5db;">\u5C71\u7530 \u592A\u90CE</td></tr>
+          <tr><td style="padding:4px 8px;border:1px solid #d1d5db;background:#f9fafb;">\u751F\u5E74\u6708\u65E5</td><td style="padding:4px 8px;border:1px solid #d1d5db;">\u662D\u548C60\u5E741\u67081\u65E5\u751F</td></tr>
+          <tr><td style="padding:4px 8px;border:1px solid #d1d5db;background:#f9fafb;">\u6027\u5225</td><td style="padding:4px 8px;border:1px solid #d1d5db;">\u7537</td></tr>
+          <tr><td style="padding:4px 8px;border:1px solid #d1d5db;background:#f9fafb;">\u4F4F\u6240</td><td style="padding:4px 8px;border:1px solid #d1d5db;">\u6771\u4EAC\u90FD\u5343\u4EE3\u7530\u533A\u5343\u4EE3\u75301-1</td></tr>
+          <tr><td style="padding:4px 8px;border:1px solid #d1d5db;background:#f9fafb;">\u4E16\u5E2F\u4E3B</td><td style="padding:4px 8px;border:1px solid #d1d5db;">\u5C71\u7530 \u592A\u90CE</td></tr>
+        </table>
+        <div style="margin-top:16px;text-align:right;font-size:10px;color:#6b7280;">
+          \u767A\u884C\u65E5\uFF1A\u4EE4\u548C6\u5E741\u67081\u65E5<br>\u5343\u4EE3\u7530\u533A\u9577
+        </div>
+      </div>
+    `};return e[n]??e["mynumber-card"]}function oe(n){var c;(c=document.getElementById(V))==null||c.remove();let t=document.createElement("div");t.id=V,t.style.cssText=`
+    position:fixed;inset:0;background:rgba(0,0,0,0.6);
+    z-index:200000;display:flex;align-items:center;justify-content:center;
+    animation:tq-slide-in 0.2s ease;
+  `;let e=document.createElement("div");e.style.cssText=`
+    background:white;border-radius:16px;padding:24px;
+    max-width:480px;width:90%;
+    box-shadow:0 20px 60px rgba(0,0,0,0.3);
+  `;let o=document.createElement("h3");o.textContent="\u66F8\u985E\u306E\u898B\u672C",o.style.cssText="margin:0 0 16px;font-size:16px;font-weight:700;color:#1f2937;";let i=document.createElement("div");i.style.cssText="display:flex;justify-content:center;margin-bottom:20px;",i.innerHTML=ye(n.documentType,n.previewImageUrl);let s=document.createElement("button");s.textContent="\u9589\u3058\u308B",s.style.cssText=`
+    width:100%;background:#f3f4f6;border:none;
+    padding:10px;border-radius:8px;font-size:14px;
+    cursor:pointer;font-weight:600;color:#374151;
+    transition:background 0.15s;
+  `,s.onmouseover=()=>{s.style.background="#e5e7eb"},s.onmouseout=()=>{s.style.background="#f3f4f6"},s.onclick=()=>t.remove(),t.onclick=r=>{r.target===t&&t.remove()},e.appendChild(o),e.appendChild(i),e.appendChild(s),t.appendChild(e),document.body.appendChild(t)}function F(){var n;(n=document.getElementById(V))==null||n.remove()}var I="tq-input-overlay",k="tq-input-ring",W="tq-input-error-tooltip";function ie(n,t){if(A(),n.targetType==="button"){Ee(n,t);return}if(n.targetType==="element"){we(n,t);return}let e=document.getElementById(n.targetId);if(!e){h(n.message,t);return}e.scrollIntoView({block:"center",inline:"nearest"}),q();let o=()=>{var Y;(Y=document.getElementById(I))==null||Y.remove();let x=e.getBoundingClientRect(),g=12,C=x.left-g,T=x.top-g,le=x.right+g,ae=x.bottom+g,P=document.createElement("div");P.id=I,P.style.cssText="position:fixed;inset:0;background:transparent;z-index:99998;pointer-events:none;",H(P,C,T,le,ae,"tq-input-mask",!1),document.body.appendChild(P)};o(),window.addEventListener("resize",o);let i=e.style.pointerEvents,s=e.style.zIndex,c=e.style.outline,r=e.style.boxShadow;e.style.pointerEvents="auto",e.style.zIndex="99999",e.style.position=e.style.position||"relative",e.focus();let d=n.documentType?{label:`\u{1F50D} ${n.buttonLabel??"\u898B\u672C\u3092\u78BA\u8A8D"}`,onClick:()=>oe({id:n.id,type:"document-preview",message:"",targetId:n.targetId,targetLabel:n.targetLabel,documentType:n.documentType,buttonLabel:n.buttonLabel,nextId:n.nextId})}:void 0;h(n.message,()=>{},void 0,!0,d);let m=n.validationPattern?new RegExp(n.validationPattern):null,p=null,u=()=>{var x;p&&(window.removeEventListener("resize",p),p=null),(x=document.getElementById(W))==null||x.remove()},l=x=>{u();let g=document.createElement("div");g.id=W,g.textContent=x,g.style.cssText=`
+      position:fixed;
+      background:white;color:#ef4444;
+      border:1.5px solid #ef4444;border-radius:6px;
+      padding:6px 10px;font-size:12px;font-weight:600;
+      white-space:nowrap;
+      box-shadow:0 2px 8px rgba(239,68,68,0.2);
+      z-index:100001;pointer-events:none;
+    `;let C=()=>{let T=e.getBoundingClientRect();g.style.left=`${T.left}px`,g.style.top=`${T.bottom+8}px`};C(),document.body.appendChild(g),p=C,window.addEventListener("resize",p)},a=()=>{window.removeEventListener("resize",o),e.removeEventListener("keydown",E),e.style.pointerEvents=i,e.style.zIndex=s,e.style.outline=c,e.style.boxShadow=r,u(),A(),f(),B()},b=!1,v=()=>{if(b)return;let x=e.value.trim();if(m){if(!x){e.style.outline="2px solid #ef4444",e.style.boxShadow="0 0 0 3px rgba(239,68,68,0.2)",l("\u5165\u529B\u3057\u3066\u304B\u3089\u6B21\u3078\u9032\u3093\u3067\u304F\u3060\u3055\u3044"),f(),h("\u5165\u529B\u3057\u3066\u304B\u3089\u6B21\u3078\u9032\u3093\u3067\u304F\u3060\u3055\u3044\u3002",()=>{},"thinking",!0,d),e.focus(),e.addEventListener("blur",w,{once:!0});return}if(!m.test(x)){e.style.outline="2px solid #ef4444",e.style.boxShadow="0 0 0 3px rgba(239,68,68,0.2)",l(n.errorMessage||"\u5165\u529B\u5185\u5BB9\u304C\u6B63\u3057\u304F\u3042\u308A\u307E\u305B\u3093"),f(),h(n.errorMessage||"\u5165\u529B\u5185\u5BB9\u304C\u6B63\u3057\u304F\u3042\u308A\u307E\u305B\u3093\u3002\u3082\u3046\u4E00\u5EA6\u78BA\u8A8D\u3057\u3066\u304F\u3060\u3055\u3044\u3002",()=>{},"thinking",!0,d),e.focus(),e.addEventListener("blur",w,{once:!0});return}}b=!0,e.removeEventListener("keydown",E),e.style.outline="2px solid #22c55e",e.style.boxShadow="0 0 0 3px rgba(34,197,94,0.2)",u(),setTimeout(()=>{a(),t()},400)},w=()=>v(),E=x=>{x.key==="Enter"&&(x.preventDefault(),v())};e.addEventListener("blur",w,{once:!0}),e.addEventListener("keydown",E)}function ve(n){var o;let t=n.tagName.toLowerCase(),e=(o=n.type)==null?void 0:o.toLowerCase();return t==="input"&&(e==="checkbox"||e==="radio")?{eventName:"change",shouldAdvance:i=>i.target.checked}:t==="select"?{eventName:"change",shouldAdvance:()=>!0}:{eventName:"click",shouldAdvance:()=>!0}}function we(n,t){let e=document.querySelector(n.targetId);if(!e){h(n.message,t);return}e.scrollIntoView({block:"center",inline:"nearest"}),q();let o=()=>{var w,E;(w=document.getElementById(I))==null||w.remove(),(E=document.getElementById(k))==null||E.remove();let d=e.getBoundingClientRect(),m=8,p=d.left-m,u=d.top-m,l=d.right+m,a=d.bottom+m,b=document.createElement("div");b.id=I,b.style.cssText="position:fixed;inset:0;background:transparent;z-index:99998;pointer-events:all;",H(b,p,u,l,a,"tq-element-mask"),document.body.appendChild(b);let v=document.createElement("div");v.id=k,v.style.cssText=`
+      position:fixed;left:${p}px;top:${u}px;
+      width:${l-p}px;height:${a-u}px;
+      border:3px solid #fbbf24;border-radius:6px;
+      z-index:99999;pointer-events:none;
+      animation:tq-pulse-ring 1.2s ease-out infinite;
+    `,document.body.appendChild(v)};o(),window.addEventListener("resize",o);let i=e.style.pointerEvents,s=e.style.position,c=e.style.zIndex;e.style.pointerEvents="auto",e.style.position=e.style.position||"relative",e.style.zIndex="99999";let r=()=>{var d,m;window.removeEventListener("resize",o),e.style.pointerEvents=i,e.style.position=s,e.style.zIndex=c,(d=document.getElementById(I))==null||d.remove(),(m=document.getElementById(k))==null||m.remove(),B()};h(n.message,()=>{r(),f(),t()})}function Ee(n,t){let e=document.getElementById(n.targetId);if(!e){h(n.message,t);return}e.scrollIntoView({block:"center",inline:"nearest"}),q();let o=()=>{var C,T;(C=document.getElementById(I))==null||C.remove(),(T=document.getElementById(k))==null||T.remove();let l=e.getBoundingClientRect(),a=8,b=l.left-a,v=l.top-a,w=l.right+a,E=l.bottom+a,x=document.createElement("div");x.id=I,x.style.cssText="position:fixed;inset:0;background:transparent;z-index:99998;pointer-events:all;",H(x,b,v,w,E,"tq-input-button-mask"),document.body.appendChild(x);let g=document.createElement("div");g.id=k,g.style.cssText=`
+      position:fixed;left:${b}px;top:${v}px;
+      width:${w-b}px;height:${E-v}px;
+      border:3px solid #fbbf24;border-radius:6px;
+      z-index:99999;pointer-events:none;
+      animation:tq-pulse-ring 1.2s ease-out infinite;
+    `,document.body.appendChild(g)};o(),window.addEventListener("resize",o);let i=e.style.pointerEvents,s=e.style.position,c=e.style.zIndex;e.style.pointerEvents="auto",e.style.position=e.style.position||"relative",e.style.zIndex="99999";let r=e.disabled;r&&(e.disabled=!1);let d=()=>{var l,a;window.removeEventListener("resize",o),e.style.pointerEvents=i,e.style.position=s,e.style.zIndex=c,r&&(e.disabled=!0),(l=document.getElementById(I))==null||l.remove(),(a=document.getElementById(k))==null||a.remove(),B()},{eventName:m,shouldAdvance:p}=ve(e),u=l=>{p(l)&&(e.removeEventListener(m,u),d(),f(),t())};e.addEventListener(m,u),h(n.message,()=>{},void 0,!0)}function A(){var n,t,e;(n=document.getElementById(I))==null||n.remove(),(t=document.getElementById(k))==null||t.remove(),(e=document.getElementById(W))==null||e.remove(),B()}var M=class{scenario;currentBlockId;currentStep;totalSteps;constructor(t){this.scenario=t,this.currentBlockId=null,this.currentStep=0,this.totalSteps=t.totalSteps??t.blocks.filter(e=>e.type!=="start"&&e.type!=="end").length}start(){this.currentBlockId=this.scenario.startBlockId,this.currentStep=0,G(this.totalSteps),this.currentBlockId&&this.renderCurrentBlock()}next(t){if(!t){this.cleanup();return}this.currentBlockId=t,this.renderCurrentBlock()}renderCurrentBlock(){if(!this.currentBlockId)return;let t=this.scenario.blocks.find(e=>e.id===this.currentBlockId);if(!t){this.cleanup();return}this.currentStep++,X(this.currentStep,this.totalSteps),window.parent.postMessage({type:"TEBIKI_CHART_BLOCK_ACTIVE",blockId:t.id},"*"),this.render(t)}render(t){switch(t.type){case"start":this.currentStep--,t.message?(R(),h(t.message,()=>this.next(t.nextId),t.characterMood)):this.next(t.nextId);break;case"end":this.finish(t.message);break;case"speech":R(),h(t.message,()=>this.next(t.nextId),t.characterMood);break;case"input-spotlight":L(),ie(t,()=>this.next(t.nextId));break;case"branch":R(),ee(t.question,t.options.map(e=>({label:e.label,color:e.color,onSelect:()=>this.next(e.nextId)})));break}}cleanup(){Z(this.totalSteps),f(),L(),A(),F(),window.parent.postMessage({type:"TEBIKI_CHART_BLOCK_ACTIVE",blockId:null},"*")}finish(t){this.cleanup();let e=t??"\u624B\u7D9A\u304D\u306E\u6D41\u308C\u3092\u78BA\u8A8D\u3067\u304D\u307E\u3057\u305F\u3002",o=document.createElement("div");o.id="tq-completion-toast",o.style.cssText=`
+      position:fixed;bottom:24px;right:24px;
+      background:white;border-radius:16px;padding:20px 24px;
+      box-shadow:0 8px 32px rgba(0,0,0,0.18);
+      z-index:100001;display:flex;align-items:center;gap:16px;
+      animation:tq-slide-in 0.3s ease;
+      pointer-events:auto;
+    `,o.innerHTML=`
+      <div style="font-size:36px;">\u{1F389}</div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#1f2937;margin-bottom:2px;">\u30C1\u30E5\u30FC\u30C8\u30EA\u30A2\u30EB\u5B8C\u4E86\uFF01</div>
+        <div style="font-size:13px;color:#6b7280;">${e.replace(/</g,"&lt;")}</div>
+      </div>
+      <button id="tq-completion-close" style="
+        background:transparent;border:none;color:#9ca3af;
+        font-size:20px;cursor:pointer;padding:4px;line-height:1;
+        margin-left:8px;
+      ">\u2715</button>
+    `,document.body.appendChild(o),document.getElementById("tq-completion-close").onclick=()=>o.remove(),setTimeout(()=>o.remove(),5e3),window.parent.postMessage({type:"TEBIKI_CHART_FINISHED"},"*")}destroy(){var t;f(),L(),A(),F(),U(),(t=document.getElementById("tq-completion-toast"))==null||t.remove()}};var y=null,Ie="tq-pick-highlight";function re(n){let t=[],e=n,o=0,i=50;for(;e&&o<i;){if(e.id){t.unshift(`#${CSS.escape(e.id)}`);break}let s=e.tagName.toLowerCase(),c=e.parentElement;if(!c){t.unshift(s);break}let r=Array.from(c.children).filter(d=>d.tagName===e.tagName);if(r.length===1)t.unshift(s);else{let d=r.indexOf(e)+1;t.unshift(`${s}:nth-of-type(${d})`)}e=c,o++}return t.join(" > ")}function Ce(n){let t=document.createElement("div");t.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999999;display:flex;align-items:center;justify-content:center;";let e=document.createElement("div");e.style.cssText="background:white;padding:24px;border-radius:8px;max-width:400px;";let o=document.createElement("h3");o.style.cssText="color:#ef4444;margin-bottom:12px;",o.textContent="\u30A8\u30E9\u30FC";let i=document.createElement("p");i.textContent=n;let s=document.createElement("button");s.style.cssText="margin-top:16px;padding:8px 16px;background:#3b82f6;color:white;border:none;border-radius:4px;cursor:pointer;",s.textContent="\u9589\u3058\u308B",s.onclick=()=>t.remove(),e.appendChild(o),e.appendChild(i),e.appendChild(s),t.appendChild(e),document.body.appendChild(t)}function se(n,t){let e=document.createElement("div");e.id="tq-start-dialog",e.style.cssText=`
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.45);
+    z-index:100002;
+    display:flex;align-items:center;justify-content:center;
+  `;let o=document.createElement("div");o.style.cssText=`
+    background:white;border-radius:20px;
+    padding:32px 28px;max-width:360px;width:90%;
+    box-shadow:0 16px 48px rgba(0,0,0,0.22);
+    text-align:center;
+  `;let i=document.createElement("div");i.style.cssText="font-size:48px;margin-bottom:12px;",i.textContent="\u{1F9ED}";let s=document.createElement("div");s.style.cssText="font-size:17px;font-weight:700;color:#1f2937;margin-bottom:6px;",s.textContent=n.title;let c=document.createElement("span");c.textContent="\u3053\u306E\u30DA\u30FC\u30B8\u306E\u64CD\u4F5C\u624B\u9806\u3092\u30AC\u30A4\u30C9\u3057\u307E\u3059\u3002";let r=document.createElement("span");r.textContent="\u30C1\u30E5\u30FC\u30C8\u30EA\u30A2\u30EB\u3092\u958B\u59CB\u3057\u307E\u3059\u304B\uFF1F";let d=document.createElement("p");d.style.cssText="font-size:13px;color:#6b7280;margin-bottom:24px;line-height:1.6;",d.appendChild(c),d.appendChild(document.createElement("br")),d.appendChild(r);let m=document.createElement("div");m.style.cssText="display:flex;flex-direction:column;gap:10px;";let p=document.createElement("button");p.id="tq-start-btn",p.style.cssText=`
+    background:#3b82f6;color:white;border:none;
+    border-radius:10px;padding:12px;font-size:15px;
+    font-weight:700;cursor:pointer;
+  `,p.textContent="\u25B6 \u958B\u59CB\u3059\u308B";let u=document.createElement("button");u.id="tq-skip-btn",u.style.cssText=`
+    background:transparent;color:#9ca3af;
+    border:1.5px solid #e5e7eb;border-radius:10px;
+    padding:10px;font-size:14px;cursor:pointer;
+  `,u.textContent="\u30B9\u30AD\u30C3\u30D7",m.appendChild(p),m.appendChild(u),o.appendChild(i),o.appendChild(s),o.appendChild(d),o.appendChild(m),e.appendChild(o),document.body.appendChild(e);let l=()=>e.remove();p.onclick=()=>{l(),t()},u.onclick=l,e.addEventListener("click",a=>{a.target===e&&l()})}var S=null;function Te(){S&&S();let n=Array.from(document.querySelectorAll("[disabled]"));n.forEach(c=>c.removeAttribute("disabled"));let t=document.createElement("div");t.id=Ie,t.style.cssText=`
+    position:fixed;pointer-events:none;z-index:999999;
+    border:2px solid #f59e0b;border-radius:4px;
+    background:rgba(245,158,11,0.15);transition:all 0.05s;
+    display:none;
+  `,document.body.appendChild(t);let e=document.createElement("div");e.style.cssText=`
+    position:fixed;z-index:1000000;pointer-events:none;
+    background:#1f2937;color:white;font-size:11px;font-family:monospace;
+    padding:3px 8px;border-radius:4px;white-space:nowrap;display:none;
+  `,document.body.appendChild(e);let o=null,i=c=>{let r=document.elementFromPoint(c.clientX,c.clientY);if(!r||r===t||r===e)return;o=r;let d=r.getBoundingClientRect();t.style.display="block",t.style.left=`${d.left-2}px`,t.style.top=`${d.top-2}px`,t.style.width=`${d.width+4}px`,t.style.height=`${d.height+4}px`;let m=re(r),p=r.id??"",u=!!p;e.style.background=u?"#1f2937":"#b45309",e.textContent=u?`#${p}  (${r.tagName.toLowerCase()})`:`(ID\u306A\u3057) ${m}`,e.style.display="block",e.style.left=`${Math.min(c.clientX+12,window.innerWidth-200)}px`,e.style.top=`${c.clientY+16}px`},s=c=>{c.preventDefault(),c.stopImmediatePropagation();let r=o??document.elementFromPoint(c.clientX,c.clientY);if(!r||r===t||r===e)return;if(r.tagName.toLowerCase()==="label"){let p=r,u=p.htmlFor?document.getElementById(p.htmlFor):p.querySelector("input, select, textarea, button");u&&(r=u)}let d=re(r),m=r.id??"";window.parent.postMessage({type:"TEBIKI_CHART_ELEMENT_PICKED",selector:d,id:m},"*"),de()};document.addEventListener("mousemove",i,!0),document.addEventListener("mousedown",s,!0),document.body.style.cursor="crosshair",S=()=>{document.removeEventListener("mousemove",i,!0),document.removeEventListener("mousedown",s,!0),document.body.style.cursor="",t.remove(),e.remove(),n.forEach(c=>c.setAttribute("disabled","")),S=null}}function de(){S&&S()}var O={async start(n){try{let t=await fetch(n);if(!t.ok)throw new Error(`Failed to fetch scenario: ${t.status}`);let e=await t.json();O.startWithScenario(e)}catch(t){console.error("[TebikiChart] Failed to load scenario:",t),Ce("\u30B7\u30CA\u30EA\u30AA\u306E\u8AAD\u307F\u8FBC\u307F\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002")}},startWithScenario(n){y&&y.destroy(),y=new M(n),y.start()},stop(){y&&(y.destroy(),y=null)}};window.addEventListener("message",n=>{var t,e,o,i;if(n.origin!==window.location.origin){console.warn("[TebikiChart] Untrusted origin:",n.origin);return}((t=n.data)==null?void 0:t.type)==="TEBIKI_CHART_START"&&O.startWithScenario(n.data.scenario),((e=n.data)==null?void 0:e.type)==="TEBIKI_CHART_STOP"&&O.stop(),((o=n.data)==null?void 0:o.type)==="TEBIKI_CHART_PICK_START"&&Te(),((i=n.data)==null?void 0:i.type)==="TEBIKI_CHART_PICK_CANCEL"&&de()});function ke(n){let t=()=>{y&&y.destroy(),y=new M(n),y.start()};document.readyState==="loading"?document.addEventListener("DOMContentLoaded",()=>se(n,t),{once:!0}):se(n,t)}var{start:Be,startWithScenario:Se,stop:ze}=O;return ge(Le);})();
+
+</script>
+<script>
+TebikiChart.startWithPrompt({
+  "id": "scenario-1775800781905",
+  "title": "確定申告手続き",
+  "category": "moving",
+  "createdAt": "2026-04-10T05:59:41.905Z",
+  "updatedAt": "2026-04-10T06:25:34.696Z",
+  "startBlockId": "block-1775800781905-start",
+  "blocks": [
+    {
+      "id": "block-1775800781905-start",
+      "type": "start",
+      "nextId": "block-o9fuo"
+    },
+    {
+      "id": "block-o9fuo",
+      "type": "speech",
+      "message": "こんにちは!確定申告の手続きを進めましょう。フォームの入力をサポートします。",
+      "characterMood": "happy",
+      "nextId": "block-fmkac"
+    },
+    {
+      "id": "block-fmkac",
+      "type": "input-spotlight",
+      "message": "まず、申請者情報の入力をします。",
+      "targetId": "html > body > main > div:nth-of-type(3) > div:nth-of-type(2)",
+      "targetLabel": "",
+      "nextId": "block-wwlsg",
+      "targetType": "element"
+    },
+    {
+      "id": "block-wwlsg",
+      "type": "input-spotlight",
+      "message": "次に、源泉徴収票の『支払金額』をここに入力します。",
+      "targetId": "html > body > main > div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1)",
+      "targetLabel": "",
+      "nextId": "block-v40f3",
+      "targetType": "element"
+    },
+    {
+      "id": "block-v40f3",
+      "type": "input-spotlight",
+      "message": "次に、『源泉徴収税額』も入力します。",
+      "targetId": "html > body > main > div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(2)",
+      "targetLabel": "",
+      "nextId": "block-k2s6n",
+      "targetType": "element"
+    },
+    {
+      "id": "block-k2s6n",
+      "type": "input-spotlight",
+      "message": "事業所得・副業収入があれば入力します。",
+      "targetId": "html > body > main > div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(3)",
+      "targetLabel": "",
+      "nextId": "block-p7w0z",
+      "targetType": "element"
+    },
+    {
+      "id": "block-p7w0z",
+      "type": "input-spotlight",
+      "message": "その他の収入もあれば入力します。",
+      "targetId": "html > body > main > div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(4)",
+      "targetLabel": "",
+      "nextId": "block-fw0dd",
+      "targetType": "element"
+    },
+    {
+      "id": "block-fw0dd",
+      "type": "input-spotlight",
+      "message": "10万円以上の医療費があれば節税できます",
+      "targetId": "html > body > main > div:nth-of-type(5) > div:nth-of-type(2) > div:nth-of-type(2)",
+      "targetLabel": "",
+      "nextId": "block-om1v3",
+      "targetType": "element"
+    },
+    {
+      "id": "block-om1v3",
+      "type": "input-spotlight",
+      "message": "ワンストップ特例を使っていない場合は忘れずに。住宅ローン控除もある場合は入力します。",
+      "targetId": "html > body > main > div:nth-of-type(5) > div:nth-of-type(2) > div:nth-of-type(3)",
+      "targetLabel": "",
+      "nextId": "block-j1ak9",
+      "targetType": "element"
+    },
+    {
+      "id": "block-j1ak9",
+      "type": "input-spotlight",
+      "message": "その他の控除がある場合は入力します。",
+      "targetId": "html > body > main > div:nth-of-type(5) > div:nth-of-type(2) > div:nth-of-type(4)",
+      "targetLabel": "",
+      "nextId": "block-ps2of",
+      "targetType": "element"
+    },
+    {
+      "id": "block-ps2of",
+      "type": "input-spotlight",
+      "message": "還付金の振込先を入力します。",
+      "targetId": "html > body > main > div:nth-of-type(6) > div:nth-of-type(2)",
+      "targetLabel": "",
+      "nextId": "block-wpim1",
+      "targetType": "element"
+    },
+    {
+      "id": "block-wpim1",
+      "type": "input-spotlight",
+      "message": "最後に申請内容の確認・同意と提出をお願いします。これで確定申告は完了です。",
+      "targetId": "html > body > main > div:nth-of-type(7) > div:nth-of-type(2)",
+      "targetLabel": "",
+      "nextId": "block-1775800781905-end",
+      "targetType": "element"
+    },
+    {
+      "id": "block-1775800781905-end",
+      "type": "end"
+    }
+  ]
+});
+</script>
+<!-- TebikiChart Tutorial End -->
+</body>
+</html>

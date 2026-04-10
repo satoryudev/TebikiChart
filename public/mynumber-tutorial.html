@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マイナンバーカード交付申請 - マイナポータル</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'メイリオ', Meiryo, 'ヒラギノ角ゴ Pro', sans-serif; font-size: 14px; background: #f0f4f0; color: #333; }
+
+  /* ヘッダー */
+  #header { background: #00873c; color: #fff; }
+  #header-top { padding: 0 20px; display: flex; align-items: center; height: 56px; justify-content: space-between; }
+  .logo-area { display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 36px; height: 36px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #00873c; font-weight: bold; font-size: 14px; }
+  .logo-text { font-size: 18px; font-weight: bold; }
+  .logo-sub { font-size: 11px; color: #a0d8b0; }
+  .header-user { font-size: 12px; color: #a0d8b0; }
+  #header-nav { background: #006b30; padding: 0 20px; display: flex; }
+  #header-nav a { color: #fff; text-decoration: none; padding: 8px 16px; font-size: 13px; display: block; }
+  #header-nav a:hover { background: #00873c; }
+  #header-nav a.active { background: #00873c; border-bottom: 3px solid #fff; }
+
+  /* パンくず */
+  #breadcrumb { background: #e0ede0; padding: 6px 20px; font-size: 12px; border-bottom: 1px solid #b0d0b0; }
+  #breadcrumb a { color: #006b30; text-decoration: none; }
+  #breadcrumb span { color: #666; margin: 0 6px; }
+
+  /* メイン */
+  #main { max-width: 860px; margin: 24px auto; padding: 0 16px; }
+
+  h1 { font-size: 20px; color: #006b30; margin-bottom: 6px; }
+  .page-desc { font-size: 13px; color: #555; margin-bottom: 20px; line-height: 1.6; }
+
+  /* ステップ */
+  #steps { display: flex; align-items: center; margin-bottom: 28px; }
+  .step-item { display: flex; align-items: center; }
+  .step-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
+  .step-circle.active { background: #00873c; color: #fff; }
+  .step-circle.done { background: #a0d8b0; color: #006b30; }
+  .step-circle.pending { background: #ddd; color: #999; }
+  .step-label { font-size: 12px; margin-left: 6px; }
+  .step-label.active { color: #006b30; font-weight: bold; }
+  .step-label.pending { color: #999; }
+  .step-arrow { margin: 0 12px; color: #999; font-size: 18px; }
+
+  /* カード */
+  .card { background: #fff; border: 1px solid #b0d0b0; border-radius: 6px; margin-bottom: 20px; overflow: hidden; }
+  .card-header { background: #00873c; color: #fff; padding: 10px 16px; font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+  .card-header .icon { font-size: 18px; }
+  .card-body { padding: 20px; }
+
+  table.form-table { width: 100%; border-collapse: collapse; }
+  table.form-table th { width: 200px; background: #e8f5e9; border: 1px solid #b0d0b0; padding: 10px 12px; text-align: left; font-weight: normal; vertical-align: top; }
+  table.form-table td { border: 1px solid #b0d0b0; padding: 10px 12px; }
+  .required { color: #c00; font-size: 11px; margin-left: 4px; background: #ffe0e0; padding: 1px 4px; border-radius: 2px; }
+
+  input[type="text"], input[type="tel"], input[type="date"], select {
+    border: 1px solid #999; padding: 7px 10px; font-size: 13px; font-family: inherit;
+    border-radius: 3px;
+  }
+  input[type="text"]:focus, input[type="tel"]:focus, select:focus {
+    outline: 2px solid #00873c; border-color: #00873c;
+  }
+
+  /* 写真アップロード */
+  .photo-area { border: 2px dashed #b0d0b0; border-radius: 6px; padding: 30px; text-align: center; background: #f5fbf5; cursor: pointer; }
+  .photo-area:hover { border-color: #00873c; background: #e8f5e9; }
+  .photo-placeholder { font-size: 60px; margin-bottom: 12px; }
+  .photo-note { font-size: 12px; color: #555; line-height: 1.8; }
+  .photo-specs { background: #e8f5e9; border-radius: 4px; padding: 10px; margin-top: 12px; font-size: 11px; color: #555; text-align: left; }
+  .photo-specs li { margin-left: 16px; margin-bottom: 4px; }
+
+  /* 申請書ID */
+  .id-inputs { display: flex; align-items: center; gap: 6px; }
+  .id-inputs input { width: 52px; text-align: center; font-size: 16px; letter-spacing: 2px; }
+  .id-sep { font-size: 18px; color: #999; }
+
+  /* 注意書き */
+  .notice { border-radius: 4px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
+  .notice-warn { background: #fff8e1; border-left: 4px solid #ffc107; }
+  .notice-info { background: #e3f2fd; border-left: 4px solid #2196f3; }
+  .notice strong { display: block; margin-bottom: 4px; font-size: 13px; }
+
+  /* 同意チェック */
+  .agree-box { background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 16px; margin-bottom: 20px; }
+  .agree-box p { font-size: 12px; color: #555; margin-bottom: 12px; line-height: 1.6; }
+  .agree-check { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+  .agree-check input { width: 18px; height: 18px; }
+
+  /* ボタン */
+  .btn-area { display: flex; justify-content: center; gap: 16px; padding: 20px; background: #f5f5f5; border-top: 1px solid #ddd; border-radius: 0 0 6px 6px; }
+  .btn-submit { background: #00873c; color: #fff; border: none; padding: 14px 52px; font-size: 15px; font-family: inherit; cursor: pointer; border-radius: 4px; }
+  .btn-submit:hover { background: #006b30; }
+  .btn-cancel { background: #fff; color: #333; border: 1px solid #999; padding: 14px 32px; font-size: 14px; font-family: inherit; cursor: pointer; border-radius: 4px; }
+
+  /* 完了 */
+  #complete { display: none; }
+  #complete .complete-card { background: #fff; border: 1px solid #b0d0b0; border-radius: 6px; padding: 40px; text-align: center; }
+  .complete-icon { font-size: 72px; margin-bottom: 16px; }
+  .complete-title { font-size: 22px; color: #00873c; font-weight: bold; margin-bottom: 12px; }
+  .complete-sub { color: #555; font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+  .app-id-box { background: #e8f5e9; border: 1px solid #b0d0b0; border-radius: 6px; padding: 20px; display: inline-block; min-width: 320px; margin-bottom: 20px; }
+  .app-id-label { font-size: 12px; color: #666; margin-bottom: 6px; }
+  .app-id-value { font-size: 22px; font-weight: bold; color: #006b30; letter-spacing: 4px; }
+  .timeline { text-align: left; max-width: 400px; margin: 0 auto; }
+  .timeline-item { display: flex; gap: 12px; margin-bottom: 12px; }
+  .timeline-dot { width: 24px; height: 24px; border-radius: 50%; background: #00873c; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; flex-shrink: 0; margin-top: 2px; }
+  .timeline-text { font-size: 13px; color: #555; }
+  .timeline-text strong { color: #333; }
+
+  #footer { background: #006b30; color: #a0d8b0; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div id="header-top">
+    <div class="logo-area">
+      <div class="logo-mark">M</div>
+      <div>
+        <div class="logo-text">マイナポータル</div>
+        <div class="logo-sub">行政手続きのオンライン窓口</div>
+      </div>
+    </div>
+    <div class="header-user">山田 太郎 さん　ログイン中</div>
+  </div>
+  <div id="header-nav">
+    <a href="#">ホーム</a>
+    <a href="#" class="active">申請・届出</a>
+    <a href="#">お知らせ</a>
+    <a href="#">よく使うサービス</a>
+    <a href="#">設定</a>
+  </div>
+</div>
+
+<div id="breadcrumb">
+  <a href="#">ホーム</a><span>›</span>
+  <a href="#">申請・届出</a><span>›</span>
+  マイナンバーカード交付申請
+</div>
+
+<div id="main">
+  <div id="form-area">
+    <h1>マイナンバーカード交付申請</h1>
+    <p class="page-desc">
+      マイナンバーカードをオンラインで申請できます。<br>
+      申請後、審査（約1〜2ヶ月）を経て交付通知書が郵送されます。窓口で本人確認の上、カードをお受け取りください。
+    </p>
+
+    <div id="steps">
+      <div class="step-item">
+        <div class="step-circle done">✓</div>
+        <div class="step-label done" style="color:#00873c;">本人確認</div>
+      </div>
+      <div class="step-arrow">›</div>
+      <div class="step-item">
+        <div class="step-circle active">2</div>
+        <div class="step-label active">申請情報入力</div>
+      </div>
+      <div class="step-arrow">›</div>
+      <div class="step-item">
+        <div class="step-circle pending">3</div>
+        <div class="step-label pending">顔写真登録</div>
+      </div>
+      <div class="step-arrow">›</div>
+      <div class="step-item">
+        <div class="step-circle pending">4</div>
+        <div class="step-label pending">確認・送信</div>
+      </div>
+    </div>
+
+    <div class="notice notice-info">
+      <strong>ご準備いただくもの</strong>
+      交付申請書に記載されている「申請書ID（23桁）」が必要です。申請書は通知カードに同封されています。紛失の場合は市区町村窓口にて再発行できます。
+    </div>
+
+    <!-- 申請書ID -->
+    <div class="card">
+      <div class="card-header"><span class="icon">🪪</span>申請書ID</div>
+      <div class="card-body">
+        <table class="form-table">
+          <tr>
+            <th>申請書ID（23桁）<span class="required">必須</span></th>
+            <td>
+              <div class="id-inputs">
+                <input type="text" value="0001" maxlength="4">
+                <span class="id-sep">-</span>
+                <input type="text" value="2024" maxlength="4">
+                <span class="id-sep">-</span>
+                <input type="text" value="0405" maxlength="4">
+                <span class="id-sep">-</span>
+                <input type="text" value="8842" maxlength="4">
+                <span class="id-sep">-</span>
+                <input type="text" value="391" maxlength="3">
+              </div>
+              <div style="font-size:11px; color:#666; margin-top:6px;">通知カード下部または同封の交付申請書に記載されています</div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- 個人情報 -->
+    <div class="card">
+      <div class="card-header"><span class="icon">👤</span>申請者情報</div>
+      <div class="card-body">
+        <table class="form-table">
+          <tr>
+            <th>氏名（漢字）<span class="required">必須</span></th>
+            <td><input type="text" value="山田 太郎" style="width:200px"></td>
+          </tr>
+          <tr>
+            <th>氏名（フリガナ）<span class="required">必須</span></th>
+            <td><input type="text" value="ヤマダ タロウ" style="width:200px"></td>
+          </tr>
+          <tr>
+            <th>生年月日<span class="required">必須</span></th>
+            <td><input type="date" value="1998-05-15" style="width:180px"></td>
+          </tr>
+          <tr>
+            <th>性別<span class="required">必須</span></th>
+            <td>
+              <label style="margin-right:16px; cursor:pointer;"><input type="radio" name="gender" value="male" checked style="margin-right:4px;">男</label>
+              <label style="cursor:pointer;"><input type="radio" name="gender" value="female" style="margin-right:4px;">女</label>
+            </td>
+          </tr>
+          <tr>
+            <th>住所（郵便番号）<span class="required">必須</span></th>
+            <td>
+              〒 <input type="text" value="100-0001" style="width:120px">
+              <button style="padding:5px 12px; font-size:12px; margin-left:8px; cursor:pointer; background:#00873c; color:#fff; border:none; border-radius:3px;">住所検索</button>
+            </td>
+          </tr>
+          <tr>
+            <th>住所<span class="required">必須</span></th>
+            <td><input type="text" value="東京都千代田区千代田1-1-1 千代田マンション301号" style="width:100%;"></td>
+          </tr>
+          <tr>
+            <th>電話番号<span class="required">必須</span></th>
+            <td><input type="tel" value="090-1234-5678" style="width:180px"></td>
+          </tr>
+          <tr>
+            <th>メールアドレス</th>
+            <td><input type="text" value="taro.yamada@example.com" style="width:260px"></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- 顔写真 -->
+    <div class="card">
+      <div class="card-header"><span class="icon">📷</span>顔写真の登録</div>
+      <div class="card-body">
+        <div class="notice notice-warn">
+          <strong>顔写真の規格</strong>
+          6ヶ月以内に撮影したもの・正面・無背景・無帽・サングラス不可
+        </div>
+        <div class="photo-area" onclick="this.style.borderColor='#00873c'">
+          <div class="photo-placeholder">🖼️</div>
+          <p style="font-size:14px; color:#333; margin-bottom:8px;">クリックして写真をアップロード</p>
+          <p class="photo-note">JPG、PNG形式 / ファイルサイズ 20KB〜7MB</p>
+          <div class="photo-specs">
+            <ul>
+              <li>縦4cm × 横3cm（縦横比が4:3になるよう撮影）</li>
+              <li>顔が画面の中央で、顎から頭頂部までが全体の70〜80%</li>
+              <li>背景は白・灰色・青等の無地</li>
+              <li>眼鏡は反射がなければ着用可</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 電子証明書 -->
+    <div class="card">
+      <div class="card-header"><span class="icon">🔐</span>電子証明書の発行</div>
+      <div class="card-body">
+        <table class="form-table">
+          <tr>
+            <th>署名用電子証明書</th>
+            <td>
+              <label style="cursor:pointer;"><input type="checkbox" checked style="margin-right:6px;">発行を希望する（推奨）</label>
+              <div style="font-size:12px; color:#555; margin-top:6px;">確定申告、各種オンライン手続きに利用できます</div>
+            </td>
+          </tr>
+          <tr>
+            <th>利用者証明用電子証明書</th>
+            <td>
+              <label style="cursor:pointer;"><input type="checkbox" checked style="margin-right:6px;">発行を希望する（推奨）</label>
+              <div style="font-size:12px; color:#555; margin-top:6px;">マイナポータルへのログイン等に利用できます</div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- 同意 -->
+    <div class="agree-box">
+      <p>
+        申請する個人情報は、マイナンバーカードの交付審査のみに利用されます。
+        「個人情報の取扱いについて」をご確認の上、同意の上で申請してください。
+      </p>
+      <label class="agree-check">
+        <input type="checkbox" id="agree-cb" onchange="document.getElementById('submit-btn').disabled=!this.checked">
+        <span>個人情報の取扱いについて同意します</span>
+      </label>
+    </div>
+
+    <div class="btn-area">
+      <button class="btn-cancel">キャンセル</button>
+      <button class="btn-submit" id="submit-btn" disabled onclick="submitApp()">申請する</button>
+    </div>
+  </div>
+
+  <!-- 完了 -->
+  <div id="complete">
+    <div class="complete-card">
+      <div class="complete-icon">✅</div>
+      <div class="complete-title">マイナンバーカードの交付申請が完了しました</div>
+      <p class="complete-sub">
+        申請内容を受け付けました。審査完了後、交付通知書をご登録の住所にお送りします。<br>
+        交付通知書が届きましたら、市区町村窓口にて本人確認の上カードをお受け取りください。
+      </p>
+      <div class="app-id-box">
+        <div class="app-id-label">受付番号</div>
+        <div class="app-id-value">MYN-2024-04050001</div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot">1</div>
+          <div class="timeline-text"><strong>本日</strong>　オンライン申請完了</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot">2</div>
+          <div class="timeline-text"><strong>約1〜2ヶ月後</strong>　交付通知書がご自宅に届きます</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot">3</div>
+          <div class="timeline-text"><strong>通知書到着後</strong>　市区町村窓口でカードを受取（要予約）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="footer">
+  デジタル庁　マイナポータル　© 2024 Digital Agency, Government of Japan
+</div>
+
+<script>
+function submitApp() {
+  document.getElementById('form-area').style.display = 'none';
+  document.getElementById('complete').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+</script>
+<!-- TebikiChart Tutorial Start -->
+<script>
+"use strict";var TebikiChart=(()=>{var D=Object.defineProperty;var ce=Object.getOwnPropertyDescriptor;var pe=Object.getOwnPropertyNames;var ue=Object.prototype.hasOwnProperty;var me=(n,t)=>{for(var e in t)D(n,e,{get:t[e],enumerable:!0})},xe=(n,t,e,o)=>{if(t&&typeof t=="object"||typeof t=="function")for(let i of pe(t))!ue.call(n,i)&&i!==e&&D(n,i,{get:()=>t[i],enumerable:!(o=ce(t,i))||o.enumerable});return n};var ge=n=>xe(D({},"__esModule",{value:!0}),n);var Le={};me(Le,{start:()=>Be,startWithPrompt:()=>ke,startWithScenario:()=>Se,stop:()=>ze});var z=0,_=0;function G(n){z=0,_=n}function X(n,t){z=n,_=t}function Z(n){z=n}function U(){z=0,_=0}function N(){return{current:z,total:_}}var K="tq-bubble";function be(n){return n==="happy"?"\u{1F60A}":n==="thinking"?"\u{1F914}":"\u{1F610}"}function J(n){return`
+    <div style="
+      width:56px;height:56px;border-radius:50%;
+      background:linear-gradient(135deg,#3b82f6,#1d4ed8);
+      display:flex;align-items:center;justify-content:center;
+      font-size:28px;flex-shrink:0;
+      box-shadow:0 2px 8px rgba(0,0,0,0.3);
+    ">${be(n)}</div>
+  `}function Q(n,t){let e=t>0?Math.min(100,Math.round(n/t*100)):0,o=document.createElement("div");o.style.cssText="display:flex;align-items:center;gap:8px;margin-bottom:10px;";let i=document.createElement("div");i.style.cssText=`
+    flex:1;height:4px;background:#f3f4f6;border-radius:9999px;overflow:hidden;
+  `;let s=document.createElement("div");s.style.cssText=`
+    height:100%;width:${e}%;background:#f97316;border-radius:9999px;
+    transition:width 0.4s ease;
+  `;let c=document.createElement("span");return c.style.cssText="font-size:11px;color:#9ca3af;white-space:nowrap;flex-shrink:0;",c.textContent=`${n} / ${t}`,i.appendChild(s),o.appendChild(i),o.appendChild(c),o}function h(n,t,e,o=!1,i){f();let{current:s,total:c}=N(),r=document.createElement("div");r.id=K,r.style.cssText=`
+    position:fixed;bottom:24px;left:24px;
+    display:flex;align-items:flex-end;gap:12px;
+    z-index:100000;max-width:420px;
+    animation:tq-slide-in 0.3s ease;
+  `;let d=document.createElement("div");d.style.cssText=`
+    background:white;border-radius:16px 16px 16px 4px;
+    padding:14px 16px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.15);
+    flex:1;position:relative;
+  `,c>0&&d.appendChild(Q(s,c));let m=document.createElement("p");m.style.cssText=`
+    margin:0 0 10px;font-size:14px;line-height:1.6;
+    color:#1f2937;min-height:20px;
+  `;let p=0,u=()=>{p<n.length&&(m.textContent+=n[p++],setTimeout(u,16))};if(u(),d.appendChild(m),i||!o){let l=document.createElement("div");if(l.style.cssText="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:4px;",i){let a=document.createElement("button");a.textContent=i.label,a.style.cssText=`
+        background:transparent;border:1.5px solid #0d9488;
+        color:#0d9488;padding:5px 12px;border-radius:8px;font-size:12px;
+        cursor:pointer;font-weight:600;transition:all 0.15s;
+      `,a.onmouseover=()=>{a.style.background="#0d9488",a.style.color="white"},a.onmouseout=()=>{a.style.background="transparent",a.style.color="#0d9488"},a.onmousedown=b=>b.preventDefault(),a.onclick=i.onClick,l.appendChild(a)}if(!o){let a=document.createElement("button");a.textContent="\u6B21\u3078 \u2192",a.style.cssText=`
+        background:#3b82f6;color:white;border:none;
+        padding:6px 16px;border-radius:8px;font-size:13px;
+        cursor:pointer;font-weight:600;transition:background 0.15s;
+      `,a.onmouseover=()=>{a.style.background="#2563eb"},a.onmouseout=()=>{a.style.background="#3b82f6"},a.onclick=()=>{f(),t()},l.appendChild(a)}d.appendChild(l)}if(r.innerHTML=J(e),r.appendChild(d),document.body.appendChild(r),!document.getElementById("tq-styles")){let l=document.createElement("style");l.id="tq-styles",l.textContent=`
+      @keyframes tq-slide-in {
+        from { opacity:0; transform:translateY(20px); }
+        to { opacity:1; transform:translateY(0); }
+      }
+      @keyframes tq-pulse-ring {
+        0% { transform:scale(1); opacity:0.8; }
+        100% { transform:scale(1.5); opacity:0; }
+      }
+    `,document.head.appendChild(l)}}var fe={green:{bg:"#22c55e",text:"white"},red:{bg:"#ef4444",text:"white"},blue:{bg:"#3b82f6",text:"white"},yellow:{bg:"#eab308",text:"white"},purple:{bg:"#a855f7",text:"white"},orange:{bg:"#f97316",text:"white"},pink:{bg:"#ec4899",text:"white"},cyan:{bg:"#06b6d4",text:"white"},amber:{bg:"#f59e0b",text:"white"},indigo:{bg:"#6366f1",text:"white"},lime:{bg:"#84cc16",text:"white"},white:{bg:"#f9fafb",text:"#374151"}};function ee(n,t){f();let{current:e,total:o}=N(),i=document.createElement("div");i.id=K,i.style.cssText=`
+    position:fixed;bottom:24px;left:24px;
+    display:flex;align-items:flex-end;gap:12px;
+    z-index:100000;max-width:420px;
+    animation:tq-slide-in 0.3s ease;
+  `;let s=document.createElement("div");s.style.cssText=`
+    background:white;border-radius:16px 16px 16px 4px;
+    padding:14px 16px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.15);
+    flex:1;
+  `,o>0&&s.appendChild(Q(e,o));let c=document.createElement("p");c.style.cssText=`
+    margin:0 0 12px;font-size:14px;line-height:1.6;color:#1f2937;font-weight:600;
+  `;let r=0,d=()=>{r<n.length&&(c.textContent+=n[r++],setTimeout(d,16))};d();let m=document.createElement("div");m.style.cssText="display:flex;gap:8px;flex-wrap:wrap;";for(let p of t){let u=fe[p.color]??{bg:"#6b7280",text:"white"},l=document.createElement("button");l.textContent=p.label,l.style.cssText=`
+      background:${u.bg};color:${u.text};border:none;
+      padding:6px 18px;border-radius:8px;font-size:13px;
+      cursor:pointer;font-weight:600;flex:1;min-width:80px;
+      transition:opacity 0.15s;
+    `,l.onmouseover=()=>{l.style.opacity="0.85"},l.onmouseout=()=>{l.style.opacity="1"},l.onclick=()=>{f(),p.onSelect()},m.appendChild(l)}s.appendChild(c),s.appendChild(m),i.innerHTML=J("thinking"),i.appendChild(s),document.body.appendChild(i)}function f(){var n;(n=document.getElementById(K))==null||n.remove()}var te="tq-overlay",he="tq-ring",j=null,$=null,ne="";function q(){ne=document.body.style.overflow,document.body.style.overflow="hidden"}function B(){document.body.style.overflow=ne}function H(n,t,e,o,i,s,c=!0){let r="http://www.w3.org/2000/svg",d=document.createElementNS(r,"svg");d.setAttribute("width","100%"),d.setAttribute("height","100%"),d.style.cssText="position:absolute;inset:0;width:100%;height:100%;";let m=document.createElementNS(r,"defs"),p=document.createElementNS(r,"mask");p.id=s;let u=document.createElementNS(r,"rect");u.setAttribute("x","0"),u.setAttribute("y","0"),u.setAttribute("width","100%"),u.setAttribute("height","100%"),u.setAttribute("fill","white");let l=document.createElementNS(r,"rect");l.setAttribute("x",String(t)),l.setAttribute("y",String(e)),l.setAttribute("width",String(o-t)),l.setAttribute("height",String(i-e)),l.setAttribute("rx","4"),l.setAttribute("fill","black"),p.appendChild(u),p.appendChild(l),m.appendChild(p),d.appendChild(m);let a=document.createElementNS(r,"rect");a.setAttribute("x","0"),a.setAttribute("y","0"),a.setAttribute("width","100%"),a.setAttribute("height","100%"),a.setAttribute("fill","rgba(0,0,0,0.75)"),a.setAttribute("mask",`url(#${s})`),c||(a.style.pointerEvents="none"),d.appendChild(a),n.appendChild(d)}function R(){L();let n=document.createElement("div");n.id=te,n.style.cssText=`
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.75);
+    z-index:99998;
+    pointer-events:all;
+  `,document.body.appendChild(n)}function L(){var n,t;j==null||j(),$==null||$(),$=null,(n=document.getElementById(te))==null||n.remove(),(t=document.getElementById(he))==null||t.remove(),B()}var V="tq-doc-modal";function ye(n,t){if(n==="custom"&&t)return`<img src="${t}" alt="\u66F8\u985E\u306E\u898B\u672C" style="max-width:100%;border-radius:8px;">`;if(n.startsWith("cdoc-")){try{let i=JSON.parse(localStorage.getItem("tq_custom_doc_types")??"[]").find(s=>s.id===n);if(i)return`<img src="${i.imageBase64}" alt="${i.label}" style="max-width:100%;border-radius:8px;">`}catch{}return'<p style="color:#6b7280;text-align:center;">\u753B\u50CF\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093</p>'}let e={"mynumber-card":`
+      <div style="
+        width:340px;height:200px;background:linear-gradient(135deg,#1e40af,#3b82f6);
+        border-radius:12px;padding:16px;color:white;
+        display:flex;flex-direction:column;justify-content:space-between;
+        box-shadow:0 4px 20px rgba(0,0,0,0.2);
+      ">
+        <div style="font-size:11px;opacity:0.8">\u500B\u4EBA\u756A\u53F7\u30AB\u30FC\u30C9 (\u30DE\u30A4\u30CA\u30F3\u30D0\u30FC\u30AB\u30FC\u30C9)</div>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div style="width:60px;height:80px;background:rgba(255,255,255,0.3);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:28px;">\u{1F464}</div>
+          <div>
+            <div style="font-size:16px;font-weight:bold;margin-bottom:4px;">\u5C71\u7530 \u592A\u90CE</div>
+            <div style="font-size:11px;opacity:0.8">\u751F\u5E74\u6708\u65E5: \u662D\u548C60\u5E741\u67081\u65E5</div>
+            <div style="font-size:11px;opacity:0.8">\u6027\u5225: \u7537</div>
+            <div style="font-size:11px;opacity:0.8;margin-top:8px;">\u4F4F\u6240: \u6771\u4EAC\u90FD\u5343\u4EE3\u7530\u533A...</div>
+          </div>
+        </div>
+        <div style="font-size:10px;opacity:0.7">\u6709\u52B9\u671F\u9650: \u4EE4\u548C15\u5E741\u67081\u65E5\u307E\u3067\u6709\u52B9</div>
+      </div>
+    `,receipt:`
+      <div style="
+        width:280px;background:white;border:1px solid #e5e7eb;
+        border-radius:8px;padding:20px;
+        font-family:monospace;font-size:12px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      ">
+        <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:12px;border-bottom:2px solid #1f2937;padding-bottom:8px;">\u9818 \u53CE \u66F8</div>
+        <div style="margin-bottom:8px;">\u5C71\u7530 \u592A\u90CE \u69D8</div>
+        <div style="margin:12px 0;padding:8px;background:#f9fafb;border-radius:4px;">
+          <div style="display:flex;justify-content:space-between;">
+            <span>\u624B\u6570\u6599</span><span>\xA5500</span>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-weight:bold;border-top:1px solid #e5e7eb;padding-top:8px;">
+          <span>\u5408\u8A08</span><span>\xA5500</span>
+        </div>
+        <div style="margin-top:16px;text-align:right;font-size:10px;color:#6b7280;">
+          \u25CB\u25CB\u5E02\u5F79\u6240<br>\u4EE4\u548C6\u5E741\u67081\u65E5
+        </div>
+      </div>
+    `,"residence-certificate":`
+      <div style="
+        width:320px;background:white;border:2px solid #1f2937;
+        border-radius:4px;padding:20px;
+        font-size:12px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      ">
+        <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:16px;">\u4F4F \u6C11 \u7968 \u306E \u5199 \u3057</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <tr><td style="padding:4px 8px;border:1px solid #d1d5db;background:#f9fafb;width:100px;">\u6C0F\u540D</td><td style="padding:4px 8px;border:1px solid #d1d5db;">\u5C71\u7530 \u592A\u90CE</td></tr>
+          <tr><td style="padding:4px 8px;border:1px solid #d1d5db;background:#f9fafb;">\u751F\u5E74\u6708\u65E5</td><td style="padding:4px 8px;border:1px solid #d1d5db;">\u662D\u548C60\u5E741\u67081\u65E5\u751F</td></tr>
+          <tr><td style="padding:4px 8px;border:1px solid #d1d5db;background:#f9fafb;">\u6027\u5225</td><td style="padding:4px 8px;border:1px solid #d1d5db;">\u7537</td></tr>
+          <tr><td style="padding:4px 8px;border:1px solid #d1d5db;background:#f9fafb;">\u4F4F\u6240</td><td style="padding:4px 8px;border:1px solid #d1d5db;">\u6771\u4EAC\u90FD\u5343\u4EE3\u7530\u533A\u5343\u4EE3\u75301-1</td></tr>
+          <tr><td style="padding:4px 8px;border:1px solid #d1d5db;background:#f9fafb;">\u4E16\u5E2F\u4E3B</td><td style="padding:4px 8px;border:1px solid #d1d5db;">\u5C71\u7530 \u592A\u90CE</td></tr>
+        </table>
+        <div style="margin-top:16px;text-align:right;font-size:10px;color:#6b7280;">
+          \u767A\u884C\u65E5\uFF1A\u4EE4\u548C6\u5E741\u67081\u65E5<br>\u5343\u4EE3\u7530\u533A\u9577
+        </div>
+      </div>
+    `};return e[n]??e["mynumber-card"]}function oe(n){var c;(c=document.getElementById(V))==null||c.remove();let t=document.createElement("div");t.id=V,t.style.cssText=`
+    position:fixed;inset:0;background:rgba(0,0,0,0.6);
+    z-index:200000;display:flex;align-items:center;justify-content:center;
+    animation:tq-slide-in 0.2s ease;
+  `;let e=document.createElement("div");e.style.cssText=`
+    background:white;border-radius:16px;padding:24px;
+    max-width:480px;width:90%;
+    box-shadow:0 20px 60px rgba(0,0,0,0.3);
+  `;let o=document.createElement("h3");o.textContent="\u66F8\u985E\u306E\u898B\u672C",o.style.cssText="margin:0 0 16px;font-size:16px;font-weight:700;color:#1f2937;";let i=document.createElement("div");i.style.cssText="display:flex;justify-content:center;margin-bottom:20px;",i.innerHTML=ye(n.documentType,n.previewImageUrl);let s=document.createElement("button");s.textContent="\u9589\u3058\u308B",s.style.cssText=`
+    width:100%;background:#f3f4f6;border:none;
+    padding:10px;border-radius:8px;font-size:14px;
+    cursor:pointer;font-weight:600;color:#374151;
+    transition:background 0.15s;
+  `,s.onmouseover=()=>{s.style.background="#e5e7eb"},s.onmouseout=()=>{s.style.background="#f3f4f6"},s.onclick=()=>t.remove(),t.onclick=r=>{r.target===t&&t.remove()},e.appendChild(o),e.appendChild(i),e.appendChild(s),t.appendChild(e),document.body.appendChild(t)}function F(){var n;(n=document.getElementById(V))==null||n.remove()}var I="tq-input-overlay",k="tq-input-ring",W="tq-input-error-tooltip";function ie(n,t){if(A(),n.targetType==="button"){Ee(n,t);return}if(n.targetType==="element"){we(n,t);return}let e=document.getElementById(n.targetId);if(!e){h(n.message,t);return}e.scrollIntoView({block:"center",inline:"nearest"}),q();let o=()=>{var Y;(Y=document.getElementById(I))==null||Y.remove();let x=e.getBoundingClientRect(),g=12,C=x.left-g,T=x.top-g,le=x.right+g,ae=x.bottom+g,P=document.createElement("div");P.id=I,P.style.cssText="position:fixed;inset:0;background:transparent;z-index:99998;pointer-events:none;",H(P,C,T,le,ae,"tq-input-mask",!1),document.body.appendChild(P)};o(),window.addEventListener("resize",o);let i=e.style.pointerEvents,s=e.style.zIndex,c=e.style.outline,r=e.style.boxShadow;e.style.pointerEvents="auto",e.style.zIndex="99999",e.style.position=e.style.position||"relative",e.focus();let d=n.documentType?{label:`\u{1F50D} ${n.buttonLabel??"\u898B\u672C\u3092\u78BA\u8A8D"}`,onClick:()=>oe({id:n.id,type:"document-preview",message:"",targetId:n.targetId,targetLabel:n.targetLabel,documentType:n.documentType,buttonLabel:n.buttonLabel,nextId:n.nextId})}:void 0;h(n.message,()=>{},void 0,!0,d);let m=n.validationPattern?new RegExp(n.validationPattern):null,p=null,u=()=>{var x;p&&(window.removeEventListener("resize",p),p=null),(x=document.getElementById(W))==null||x.remove()},l=x=>{u();let g=document.createElement("div");g.id=W,g.textContent=x,g.style.cssText=`
+      position:fixed;
+      background:white;color:#ef4444;
+      border:1.5px solid #ef4444;border-radius:6px;
+      padding:6px 10px;font-size:12px;font-weight:600;
+      white-space:nowrap;
+      box-shadow:0 2px 8px rgba(239,68,68,0.2);
+      z-index:100001;pointer-events:none;
+    `;let C=()=>{let T=e.getBoundingClientRect();g.style.left=`${T.left}px`,g.style.top=`${T.bottom+8}px`};C(),document.body.appendChild(g),p=C,window.addEventListener("resize",p)},a=()=>{window.removeEventListener("resize",o),e.removeEventListener("keydown",E),e.style.pointerEvents=i,e.style.zIndex=s,e.style.outline=c,e.style.boxShadow=r,u(),A(),f(),B()},b=!1,v=()=>{if(b)return;let x=e.value.trim();if(m){if(!x){e.style.outline="2px solid #ef4444",e.style.boxShadow="0 0 0 3px rgba(239,68,68,0.2)",l("\u5165\u529B\u3057\u3066\u304B\u3089\u6B21\u3078\u9032\u3093\u3067\u304F\u3060\u3055\u3044"),f(),h("\u5165\u529B\u3057\u3066\u304B\u3089\u6B21\u3078\u9032\u3093\u3067\u304F\u3060\u3055\u3044\u3002",()=>{},"thinking",!0,d),e.focus(),e.addEventListener("blur",w,{once:!0});return}if(!m.test(x)){e.style.outline="2px solid #ef4444",e.style.boxShadow="0 0 0 3px rgba(239,68,68,0.2)",l(n.errorMessage||"\u5165\u529B\u5185\u5BB9\u304C\u6B63\u3057\u304F\u3042\u308A\u307E\u305B\u3093"),f(),h(n.errorMessage||"\u5165\u529B\u5185\u5BB9\u304C\u6B63\u3057\u304F\u3042\u308A\u307E\u305B\u3093\u3002\u3082\u3046\u4E00\u5EA6\u78BA\u8A8D\u3057\u3066\u304F\u3060\u3055\u3044\u3002",()=>{},"thinking",!0,d),e.focus(),e.addEventListener("blur",w,{once:!0});return}}b=!0,e.removeEventListener("keydown",E),e.style.outline="2px solid #22c55e",e.style.boxShadow="0 0 0 3px rgba(34,197,94,0.2)",u(),setTimeout(()=>{a(),t()},400)},w=()=>v(),E=x=>{x.key==="Enter"&&(x.preventDefault(),v())};e.addEventListener("blur",w,{once:!0}),e.addEventListener("keydown",E)}function ve(n){var o;let t=n.tagName.toLowerCase(),e=(o=n.type)==null?void 0:o.toLowerCase();return t==="input"&&(e==="checkbox"||e==="radio")?{eventName:"change",shouldAdvance:i=>i.target.checked}:t==="select"?{eventName:"change",shouldAdvance:()=>!0}:{eventName:"click",shouldAdvance:()=>!0}}function we(n,t){let e=document.querySelector(n.targetId);if(!e){h(n.message,t);return}e.scrollIntoView({block:"center",inline:"nearest"}),q();let o=()=>{var w,E;(w=document.getElementById(I))==null||w.remove(),(E=document.getElementById(k))==null||E.remove();let d=e.getBoundingClientRect(),m=8,p=d.left-m,u=d.top-m,l=d.right+m,a=d.bottom+m,b=document.createElement("div");b.id=I,b.style.cssText="position:fixed;inset:0;background:transparent;z-index:99998;pointer-events:all;",H(b,p,u,l,a,"tq-element-mask"),document.body.appendChild(b);let v=document.createElement("div");v.id=k,v.style.cssText=`
+      position:fixed;left:${p}px;top:${u}px;
+      width:${l-p}px;height:${a-u}px;
+      border:3px solid #fbbf24;border-radius:6px;
+      z-index:99999;pointer-events:none;
+      animation:tq-pulse-ring 1.2s ease-out infinite;
+    `,document.body.appendChild(v)};o(),window.addEventListener("resize",o);let i=e.style.pointerEvents,s=e.style.position,c=e.style.zIndex;e.style.pointerEvents="auto",e.style.position=e.style.position||"relative",e.style.zIndex="99999";let r=()=>{var d,m;window.removeEventListener("resize",o),e.style.pointerEvents=i,e.style.position=s,e.style.zIndex=c,(d=document.getElementById(I))==null||d.remove(),(m=document.getElementById(k))==null||m.remove(),B()};h(n.message,()=>{r(),f(),t()})}function Ee(n,t){let e=document.getElementById(n.targetId);if(!e){h(n.message,t);return}e.scrollIntoView({block:"center",inline:"nearest"}),q();let o=()=>{var C,T;(C=document.getElementById(I))==null||C.remove(),(T=document.getElementById(k))==null||T.remove();let l=e.getBoundingClientRect(),a=8,b=l.left-a,v=l.top-a,w=l.right+a,E=l.bottom+a,x=document.createElement("div");x.id=I,x.style.cssText="position:fixed;inset:0;background:transparent;z-index:99998;pointer-events:all;",H(x,b,v,w,E,"tq-input-button-mask"),document.body.appendChild(x);let g=document.createElement("div");g.id=k,g.style.cssText=`
+      position:fixed;left:${b}px;top:${v}px;
+      width:${w-b}px;height:${E-v}px;
+      border:3px solid #fbbf24;border-radius:6px;
+      z-index:99999;pointer-events:none;
+      animation:tq-pulse-ring 1.2s ease-out infinite;
+    `,document.body.appendChild(g)};o(),window.addEventListener("resize",o);let i=e.style.pointerEvents,s=e.style.position,c=e.style.zIndex;e.style.pointerEvents="auto",e.style.position=e.style.position||"relative",e.style.zIndex="99999";let r=e.disabled;r&&(e.disabled=!1);let d=()=>{var l,a;window.removeEventListener("resize",o),e.style.pointerEvents=i,e.style.position=s,e.style.zIndex=c,r&&(e.disabled=!0),(l=document.getElementById(I))==null||l.remove(),(a=document.getElementById(k))==null||a.remove(),B()},{eventName:m,shouldAdvance:p}=ve(e),u=l=>{p(l)&&(e.removeEventListener(m,u),d(),f(),t())};e.addEventListener(m,u),h(n.message,()=>{},void 0,!0)}function A(){var n,t,e;(n=document.getElementById(I))==null||n.remove(),(t=document.getElementById(k))==null||t.remove(),(e=document.getElementById(W))==null||e.remove(),B()}var M=class{scenario;currentBlockId;currentStep;totalSteps;constructor(t){this.scenario=t,this.currentBlockId=null,this.currentStep=0,this.totalSteps=t.totalSteps??t.blocks.filter(e=>e.type!=="start"&&e.type!=="end").length}start(){this.currentBlockId=this.scenario.startBlockId,this.currentStep=0,G(this.totalSteps),this.currentBlockId&&this.renderCurrentBlock()}next(t){if(!t){this.cleanup();return}this.currentBlockId=t,this.renderCurrentBlock()}renderCurrentBlock(){if(!this.currentBlockId)return;let t=this.scenario.blocks.find(e=>e.id===this.currentBlockId);if(!t){this.cleanup();return}this.currentStep++,X(this.currentStep,this.totalSteps),window.parent.postMessage({type:"TEBIKI_CHART_BLOCK_ACTIVE",blockId:t.id},"*"),this.render(t)}render(t){switch(t.type){case"start":this.currentStep--,t.message?(R(),h(t.message,()=>this.next(t.nextId),t.characterMood)):this.next(t.nextId);break;case"end":this.finish(t.message);break;case"speech":R(),h(t.message,()=>this.next(t.nextId),t.characterMood);break;case"input-spotlight":L(),ie(t,()=>this.next(t.nextId));break;case"branch":R(),ee(t.question,t.options.map(e=>({label:e.label,color:e.color,onSelect:()=>this.next(e.nextId)})));break}}cleanup(){Z(this.totalSteps),f(),L(),A(),F(),window.parent.postMessage({type:"TEBIKI_CHART_BLOCK_ACTIVE",blockId:null},"*")}finish(t){this.cleanup();let e=t??"\u624B\u7D9A\u304D\u306E\u6D41\u308C\u3092\u78BA\u8A8D\u3067\u304D\u307E\u3057\u305F\u3002",o=document.createElement("div");o.id="tq-completion-toast",o.style.cssText=`
+      position:fixed;bottom:24px;right:24px;
+      background:white;border-radius:16px;padding:20px 24px;
+      box-shadow:0 8px 32px rgba(0,0,0,0.18);
+      z-index:100001;display:flex;align-items:center;gap:16px;
+      animation:tq-slide-in 0.3s ease;
+      pointer-events:auto;
+    `,o.innerHTML=`
+      <div style="font-size:36px;">\u{1F389}</div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#1f2937;margin-bottom:2px;">\u30C1\u30E5\u30FC\u30C8\u30EA\u30A2\u30EB\u5B8C\u4E86\uFF01</div>
+        <div style="font-size:13px;color:#6b7280;">${e.replace(/</g,"&lt;")}</div>
+      </div>
+      <button id="tq-completion-close" style="
+        background:transparent;border:none;color:#9ca3af;
+        font-size:20px;cursor:pointer;padding:4px;line-height:1;
+        margin-left:8px;
+      ">\u2715</button>
+    `,document.body.appendChild(o),document.getElementById("tq-completion-close").onclick=()=>o.remove(),setTimeout(()=>o.remove(),5e3),window.parent.postMessage({type:"TEBIKI_CHART_FINISHED"},"*")}destroy(){var t;f(),L(),A(),F(),U(),(t=document.getElementById("tq-completion-toast"))==null||t.remove()}};var y=null,Ie="tq-pick-highlight";function re(n){let t=[],e=n,o=0,i=50;for(;e&&o<i;){if(e.id){t.unshift(`#${CSS.escape(e.id)}`);break}let s=e.tagName.toLowerCase(),c=e.parentElement;if(!c){t.unshift(s);break}let r=Array.from(c.children).filter(d=>d.tagName===e.tagName);if(r.length===1)t.unshift(s);else{let d=r.indexOf(e)+1;t.unshift(`${s}:nth-of-type(${d})`)}e=c,o++}return t.join(" > ")}function Ce(n){let t=document.createElement("div");t.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999999;display:flex;align-items:center;justify-content:center;";let e=document.createElement("div");e.style.cssText="background:white;padding:24px;border-radius:8px;max-width:400px;";let o=document.createElement("h3");o.style.cssText="color:#ef4444;margin-bottom:12px;",o.textContent="\u30A8\u30E9\u30FC";let i=document.createElement("p");i.textContent=n;let s=document.createElement("button");s.style.cssText="margin-top:16px;padding:8px 16px;background:#3b82f6;color:white;border:none;border-radius:4px;cursor:pointer;",s.textContent="\u9589\u3058\u308B",s.onclick=()=>t.remove(),e.appendChild(o),e.appendChild(i),e.appendChild(s),t.appendChild(e),document.body.appendChild(t)}function se(n,t){let e=document.createElement("div");e.id="tq-start-dialog",e.style.cssText=`
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.45);
+    z-index:100002;
+    display:flex;align-items:center;justify-content:center;
+  `;let o=document.createElement("div");o.style.cssText=`
+    background:white;border-radius:20px;
+    padding:32px 28px;max-width:360px;width:90%;
+    box-shadow:0 16px 48px rgba(0,0,0,0.22);
+    text-align:center;
+  `;let i=document.createElement("div");i.style.cssText="font-size:48px;margin-bottom:12px;",i.textContent="\u{1F9ED}";let s=document.createElement("div");s.style.cssText="font-size:17px;font-weight:700;color:#1f2937;margin-bottom:6px;",s.textContent=n.title;let c=document.createElement("span");c.textContent="\u3053\u306E\u30DA\u30FC\u30B8\u306E\u64CD\u4F5C\u624B\u9806\u3092\u30AC\u30A4\u30C9\u3057\u307E\u3059\u3002";let r=document.createElement("span");r.textContent="\u30C1\u30E5\u30FC\u30C8\u30EA\u30A2\u30EB\u3092\u958B\u59CB\u3057\u307E\u3059\u304B\uFF1F";let d=document.createElement("p");d.style.cssText="font-size:13px;color:#6b7280;margin-bottom:24px;line-height:1.6;",d.appendChild(c),d.appendChild(document.createElement("br")),d.appendChild(r);let m=document.createElement("div");m.style.cssText="display:flex;flex-direction:column;gap:10px;";let p=document.createElement("button");p.id="tq-start-btn",p.style.cssText=`
+    background:#3b82f6;color:white;border:none;
+    border-radius:10px;padding:12px;font-size:15px;
+    font-weight:700;cursor:pointer;
+  `,p.textContent="\u25B6 \u958B\u59CB\u3059\u308B";let u=document.createElement("button");u.id="tq-skip-btn",u.style.cssText=`
+    background:transparent;color:#9ca3af;
+    border:1.5px solid #e5e7eb;border-radius:10px;
+    padding:10px;font-size:14px;cursor:pointer;
+  `,u.textContent="\u30B9\u30AD\u30C3\u30D7",m.appendChild(p),m.appendChild(u),o.appendChild(i),o.appendChild(s),o.appendChild(d),o.appendChild(m),e.appendChild(o),document.body.appendChild(e);let l=()=>e.remove();p.onclick=()=>{l(),t()},u.onclick=l,e.addEventListener("click",a=>{a.target===e&&l()})}var S=null;function Te(){S&&S();let n=Array.from(document.querySelectorAll("[disabled]"));n.forEach(c=>c.removeAttribute("disabled"));let t=document.createElement("div");t.id=Ie,t.style.cssText=`
+    position:fixed;pointer-events:none;z-index:999999;
+    border:2px solid #f59e0b;border-radius:4px;
+    background:rgba(245,158,11,0.15);transition:all 0.05s;
+    display:none;
+  `,document.body.appendChild(t);let e=document.createElement("div");e.style.cssText=`
+    position:fixed;z-index:1000000;pointer-events:none;
+    background:#1f2937;color:white;font-size:11px;font-family:monospace;
+    padding:3px 8px;border-radius:4px;white-space:nowrap;display:none;
+  `,document.body.appendChild(e);let o=null,i=c=>{let r=document.elementFromPoint(c.clientX,c.clientY);if(!r||r===t||r===e)return;o=r;let d=r.getBoundingClientRect();t.style.display="block",t.style.left=`${d.left-2}px`,t.style.top=`${d.top-2}px`,t.style.width=`${d.width+4}px`,t.style.height=`${d.height+4}px`;let m=re(r),p=r.id??"",u=!!p;e.style.background=u?"#1f2937":"#b45309",e.textContent=u?`#${p}  (${r.tagName.toLowerCase()})`:`(ID\u306A\u3057) ${m}`,e.style.display="block",e.style.left=`${Math.min(c.clientX+12,window.innerWidth-200)}px`,e.style.top=`${c.clientY+16}px`},s=c=>{c.preventDefault(),c.stopImmediatePropagation();let r=o??document.elementFromPoint(c.clientX,c.clientY);if(!r||r===t||r===e)return;if(r.tagName.toLowerCase()==="label"){let p=r,u=p.htmlFor?document.getElementById(p.htmlFor):p.querySelector("input, select, textarea, button");u&&(r=u)}let d=re(r),m=r.id??"";window.parent.postMessage({type:"TEBIKI_CHART_ELEMENT_PICKED",selector:d,id:m},"*"),de()};document.addEventListener("mousemove",i,!0),document.addEventListener("mousedown",s,!0),document.body.style.cursor="crosshair",S=()=>{document.removeEventListener("mousemove",i,!0),document.removeEventListener("mousedown",s,!0),document.body.style.cursor="",t.remove(),e.remove(),n.forEach(c=>c.setAttribute("disabled","")),S=null}}function de(){S&&S()}var O={async start(n){try{let t=await fetch(n);if(!t.ok)throw new Error(`Failed to fetch scenario: ${t.status}`);let e=await t.json();O.startWithScenario(e)}catch(t){console.error("[TebikiChart] Failed to load scenario:",t),Ce("\u30B7\u30CA\u30EA\u30AA\u306E\u8AAD\u307F\u8FBC\u307F\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002")}},startWithScenario(n){y&&y.destroy(),y=new M(n),y.start()},stop(){y&&(y.destroy(),y=null)}};window.addEventListener("message",n=>{var t,e,o,i;if(n.origin!==window.location.origin){console.warn("[TebikiChart] Untrusted origin:",n.origin);return}((t=n.data)==null?void 0:t.type)==="TEBIKI_CHART_START"&&O.startWithScenario(n.data.scenario),((e=n.data)==null?void 0:e.type)==="TEBIKI_CHART_STOP"&&O.stop(),((o=n.data)==null?void 0:o.type)==="TEBIKI_CHART_PICK_START"&&Te(),((i=n.data)==null?void 0:i.type)==="TEBIKI_CHART_PICK_CANCEL"&&de()});function ke(n){let t=()=>{y&&y.destroy(),y=new M(n),y.start()};document.readyState==="loading"?document.addEventListener("DOMContentLoaded",()=>se(n,t),{once:!0}):se(n,t)}var{start:Be,startWithScenario:Se,stop:ze}=O;return ge(Le);})();
+
+</script>
+<script>
+TebikiChart.startWithPrompt({
+  "id": "scenario-1775800166261",
+  "title": "マイナンバー",
+  "category": "moving",
+  "startBlockId": "block-start",
+  "totalSteps": 8,
+  "blocks": [
+    {
+      "id": "block-start",
+      "type": "start",
+      "nextId": "block-5ytal"
+    },
+    {
+      "id": "block-5ytal",
+      "type": "speech",
+      "message": "こんにちは！このページではマイナンバーカードをオンライン申請できます．",
+      "characterMood": "happy",
+      "nextId": "block-d5uh5"
+    },
+    {
+      "id": "block-d5uh5",
+      "type": "branch",
+      "question": "初めて方向けに案内を表示しますか？",
+      "nextId": "block-y2g33",
+      "options": [
+        {
+          "id": "yes",
+          "label": "はい",
+          "color": "green",
+          "nextId": "block-hz5xz"
+        },
+        {
+          "id": "no",
+          "label": "いいえ",
+          "color": "red",
+          "nextId": "block-p527i"
+        }
+      ]
+    },
+    {
+      "id": "block-hz5xz",
+      "type": "speech",
+      "message": "それでは案内します．",
+      "characterMood": "happy",
+      "nextId": "block-y2g33"
+    },
+    {
+      "id": "block-p527i",
+      "type": "speech",
+      "message": "個人情報の取り扱いを確認してチェックを入れてから申請してください",
+      "characterMood": "happy",
+      "nextId": "block-qholy"
+    },
+    {
+      "id": "block-qholy",
+      "type": "end",
+      "nextId": null
+    },
+    {
+      "id": "block-y2g33",
+      "type": "input-spotlight",
+      "message": "通知カードに同封の交付申請書の下部に記載されている23桁の番号を入力してください．紛失した場合は市区町村窓口で再発行できます．",
+      "targetId": "#form-area > div:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr > td",
+      "targetLabel": "申請書ID",
+      "nextId": "block-6gutm",
+      "targetType": "element"
+    },
+    {
+      "id": "block-6gutm",
+      "type": "input-spotlight",
+      "message": "名前を漢字で入力してください．(空白なし)",
+      "targetId": "#form-area > div:nth-of-type(4) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td > input",
+      "targetLabel": "指名",
+      "nextId": "block-2mvs3",
+      "targetType": "element"
+    },
+    {
+      "id": "block-2mvs3",
+      "type": "input-spotlight",
+      "message": "フリガナを入力してください．(カタカナ)",
+      "targetId": "#form-area > div:nth-of-type(4) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td > input",
+      "targetLabel": "フリガナ",
+      "nextId": "block-u928p",
+      "targetType": "element"
+    },
+    {
+      "id": "block-u928p",
+      "type": "input-spotlight",
+      "message": "生年月日をカレンダーから入力してください．",
+      "targetId": "#form-area > div:nth-of-type(4) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td > input",
+      "targetLabel": "生年月日",
+      "nextId": "block-4902j",
+      "targetType": "element"
+    },
+    {
+      "id": "block-4902j",
+      "type": "input-spotlight",
+      "message": "性別を入力してください．",
+      "targetId": "#form-area > div:nth-of-type(4) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(4) > td",
+      "targetLabel": "性別",
+      "nextId": "block-hwjw8",
+      "targetType": "element"
+    },
+    {
+      "id": "block-hwjw8",
+      "type": "input-spotlight",
+      "message": "郵便番号を入力してください．",
+      "targetId": "#form-area > div:nth-of-type(4) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(5) > td > input",
+      "targetLabel": "郵便番号",
+      "nextId": "block-62cee",
+      "targetType": "element"
+    },
+    {
+      "id": "block-62cee",
+      "type": "input-spotlight",
+      "message": "住所も入力してください．(建物名，部屋番まで)",
+      "targetId": "#form-area > div:nth-of-type(4) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(6) > td > input",
+      "targetLabel": "住所",
+      "nextId": "block-5w8sy",
+      "targetType": "element"
+    },
+    {
+      "id": "block-5w8sy",
+      "type": "input-spotlight",
+      "message": "電話番号を入力してください．",
+      "targetId": "#form-area > div:nth-of-type(4) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(7) > td > input",
+      "targetLabel": "電話番号",
+      "nextId": "block-fgf1n",
+      "targetType": "element"
+    },
+    {
+      "id": "block-fgf1n",
+      "type": "input-spotlight",
+      "message": "メールアドレスを入力してください．",
+      "targetId": "#form-area > div:nth-of-type(4) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(8) > td > input",
+      "targetLabel": "メールアドレス",
+      "nextId": "block-s6c5t",
+      "targetType": "element"
+    },
+    {
+      "id": "block-s6c5t",
+      "type": "speech",
+      "message": "個人情報に間違いがないか確認してください．",
+      "characterMood": "happy",
+      "nextId": "block-8ltyp"
+    },
+    {
+      "id": "block-8ltyp",
+      "type": "input-spotlight",
+      "message": "6ヶ月以内・正面・無背景・無帽の写真が必要です．スマホで撮影した写真でもOKですが，規格を満たしているか確認してください．",
+      "targetId": "#form-area > div:nth-of-type(5) > div:nth-of-type(2) > div:nth-of-type(2)",
+      "targetLabel": "顔写真",
+      "nextId": "block-f6q4o",
+      "targetType": "element"
+    },
+    {
+      "id": "block-f6q4o",
+      "type": "input-spotlight",
+      "message": "2種類の電子証明書はどちらも推奨です．確定申告やコンビニ交付サービスを使う予定があればチェックを入れてください．",
+      "targetId": "#form-area > div:nth-of-type(6) > div:nth-of-type(2)",
+      "targetLabel": "電子証明書の発行",
+      "nextId": "block-opm9r",
+      "targetType": "element"
+    },
+    {
+      "id": "block-opm9r",
+      "type": "input-spotlight",
+      "message": "最後に個人情報の取り扱いを確認してチェックを入れると，申請ボタンが有効になります．内容を見直してから申請してください．",
+      "targetId": "agree-cb",
+      "targetLabel": "個人情報の取り扱い",
+      "nextId": "block-hacrj",
+      "targetType": "button"
+    },
+    {
+      "id": "block-hacrj",
+      "type": "input-spotlight",
+      "message": "最後に申請するボタンを押して手続き終了です．お疲れ様でした．",
+      "targetId": "submit-btn",
+      "targetLabel": "申請するボタン",
+      "nextId": "block-end",
+      "targetType": "button"
+    },
+    {
+      "id": "block-end",
+      "type": "end"
+    }
+  ],
+  "createdAt": "2026-04-10T05:49:26.262Z",
+  "updatedAt": "2026-04-10T06:24:36.493Z"
+});
+</script>
+<!-- TebikiChart Tutorial End -->
+<script>document.write('<scr'+'ipt src="/embed.js?v='+Date.now()+'"><\/scr'+'ipt>')</script>
+</body>
+</html>
