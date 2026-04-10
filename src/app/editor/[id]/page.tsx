@@ -516,8 +516,6 @@ export default function EditorPage() {
       {/* Editor tour (portal → document.body) */}
       <EditorTour
         active={tourActive}
-        isPlaying={isPlaying}
-        onLockBlock={handleTourLockBlock}
         onComplete={() => {
           setTourActive(false)
           completeTour()
