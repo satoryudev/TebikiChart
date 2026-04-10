@@ -1,6 +1,6 @@
 import { InputSpotlightBlock } from './types'
 import { showBubble, removeBubble } from './bubble'
-import { appendSvgMaskOverlay, lockScroll, unlockScroll } from './overlay'
+import { appendSvgMaskOverlay, lockScroll, unlockScroll, showDarkenWithHole, removeDarkenWithHole } from './overlay'
 import { showModal } from './documentPreview'
 
 const OVERLAY_ID = 'tq-input-overlay'
@@ -278,7 +278,7 @@ function handleButtonSpotlight(block: InputSpotlightBlock, onNext: () => void): 
   lockScroll()
 
   const drawButtonSpotlight = () => {
-    document.getElementById(OVERLAY_ID)?.remove()
+    removeDarkenWithHole()
     document.getElementById(RING_ID)?.remove()
 
     const r = target.getBoundingClientRect()
@@ -288,11 +288,7 @@ function handleButtonSpotlight(block: InputSpotlightBlock, onNext: () => void): 
     const x2 = r.right + pad
     const y2 = r.bottom + pad
 
-    const el = document.createElement('div')
-    el.id = OVERLAY_ID
-    el.style.cssText = 'position:fixed;inset:0;background:transparent;z-index:99998;pointer-events:all;'
-    appendSvgMaskOverlay(el, x1, y1, x2, y2, 'tq-input-button-mask')
-    document.body.appendChild(el)
+    showDarkenWithHole(x1, y1, x2, y2)
 
     const ring = document.createElement('div')
     ring.id = RING_ID
@@ -326,7 +322,7 @@ function handleButtonSpotlight(block: InputSpotlightBlock, onNext: () => void): 
     target.style.position = origPosition
     target.style.zIndex = origZIndex
     if (wasDisabled) (target as HTMLButtonElement).disabled = true
-    document.getElementById(OVERLAY_ID)?.remove()
+    removeDarkenWithHole()
     document.getElementById(RING_ID)?.remove()
     unlockScroll()
   }
@@ -346,6 +342,7 @@ function handleButtonSpotlight(block: InputSpotlightBlock, onNext: () => void): 
 }
 
 export function removeInputOverlay(): void {
+  removeDarkenWithHole()
   document.getElementById(OVERLAY_ID)?.remove()
   document.getElementById(RING_ID)?.remove()
   document.getElementById(ERROR_TOOLTIP_ID)?.remove()
