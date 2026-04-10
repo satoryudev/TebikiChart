@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDraggable } from '@dnd-kit/core'
 import { BlockType } from '@/types/scenario'
 import { useBranchView } from './BranchViewContext'
@@ -59,6 +59,7 @@ function DraggablePaletteItem({ item, itemRef, disabled }: DraggableItemProps) {
 
   return (
     <div
+      id={`palette-item-${item.type}`}
       ref={(el) => {
         setNodeRef(el)
         if (typeof itemRef === 'function') itemRef(el)
@@ -87,11 +88,20 @@ export default function BlockPalette() {
   const firstItemRef = useRef<HTMLDivElement>(null)
   const { currentBranchView } = useBranchView()
   const inBranchView = currentBranchView !== null
+  const [tourAllowedTypes, setTourAllowedTypes] = useState<string[] | null>(null)
 
   useEffect(() => {
     const handler = () => firstItemRef.current?.focus()
     document.addEventListener('tebiki-chart:focus-palette', handler)
     return () => document.removeEventListener('tebiki-chart:focus-palette', handler)
+  }, [])
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setTourAllowedTypes((e as CustomEvent<{ allowedTypes: string[] | null }>).detail.allowedTypes)
+    }
+    document.addEventListener('tebiki-chart:tour-palette-filter', handler)
+    return () => document.removeEventListener('tebiki-chart:tour-palette-filter', handler)
   }, [])
 
   return (
@@ -102,7 +112,10 @@ export default function BlockPalette() {
             key={item.type}
             item={item}
             itemRef={i === 0 ? firstItemRef : undefined}
-            disabled={inBranchView && item.type === 'branch'}
+            disabled={
+              (inBranchView && item.type === 'branch') ||
+              (tourAllowedTypes !== null && !tourAllowedTypes.includes(item.type))
+            }
           />
         ))}
       </div>

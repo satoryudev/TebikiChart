@@ -62,6 +62,7 @@ const PreviewPane = forwardRef<HTMLIFrameElement, Props>(
           </span>
 
           <button
+            id="preview-play-btn"
             onClick={onPlay}
             disabled={isPlaying}
             className="text-xs px-2.5 py-0.5 rounded font-semibold bg-green-500 dark:bg-green-700 text-white

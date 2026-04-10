@@ -127,6 +127,24 @@ export default function EditorPage() {
   const [localFileName, setLocalFileName] = useState<string | null>(null)
   const { tourCompleted, completeTour } = useOnboarding()
   const [tourActive, setTourActive] = useState(false)
+  const tourLockedBlockIdRef = useRef<string | null>(null)
+
+  const handleTourLockBlock = useCallback((blockId: string | null) => {
+    tourLockedBlockIdRef.current = blockId
+  }, [])
+
+  // チュートリアル中、固定されたブロック以外に切り替わったら元に戻す
+  useEffect(() => {
+    if (!tourActive || !tourLockedBlockIdRef.current) return
+    if (selectedBlockId && selectedBlockId !== tourLockedBlockIdRef.current) {
+      setSelectedBlockId(tourLockedBlockIdRef.current)
+    }
+  }, [selectedBlockId, tourActive, setSelectedBlockId])
+
+  // チュートリアル終了時にロック解除
+  useEffect(() => {
+    if (!tourActive) tourLockedBlockIdRef.current = null
+  }, [tourActive])
 
   const [widths, setWidths] = useState<PanelWidths>({ palette: 220, canvas: 340, preview: 420, blockEditor: 260 })
   const [collapsed, setCollapsed] = useState<Collapsed>({ palette: false, preview: false, blockEditor: true })
@@ -236,9 +254,10 @@ export default function EditorPage() {
     }
   }, [editorOpenKey])
 
-  // ブロック設定パネル外クリックで閉じる
+  // ブロック設定パネル外クリックで閉じる（チュートリアル中は無効）
   useEffect(() => {
     if (collapsed.blockEditor) return
+    if (tourActive) return
     const handleClick = (e: MouseEvent) => {
       if ((e.target as HTMLElement).closest('[title="ブロック設定を開く"]')) return
       // ブロックアイテムをクリックした場合はパネルを閉じない（別ブロックへの切り替えを優先）
@@ -251,7 +270,7 @@ export default function EditorPage() {
     }
     document.addEventListener('click', handleClick)
     return () => document.removeEventListener('click', handleClick)
-  }, [collapsed.blockEditor, closeBlockEditor])
+  }, [collapsed.blockEditor, closeBlockEditor, tourActive])
 
   useEffect(() => {
     if (!pickRequest) return
@@ -498,6 +517,8 @@ export default function EditorPage() {
       {/* Editor tour (portal → document.body) */}
       <EditorTour
         active={tourActive}
+        isPlaying={isPlaying}
+        onLockBlock={handleTourLockBlock}
         onComplete={() => {
           setTourActive(false)
           completeTour()
