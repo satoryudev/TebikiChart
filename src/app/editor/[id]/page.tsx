@@ -247,9 +247,10 @@ export default function EditorPage() {
     }
   }, [editorOpenKey])
 
-  // ブロック設定パネル外クリックで閉じる
+  // ブロック設定パネル外クリックで閉じる（チュートリアル中は無効）
   useEffect(() => {
     if (collapsed.blockEditor) return
+    if (tourActive) return
     const handleClick = (e: MouseEvent) => {
       // チュートリアル中はブロック設定パネルを誤って閉じないようにする
       if (tourActive) return
@@ -515,6 +516,8 @@ export default function EditorPage() {
       {/* Editor tour (portal → document.body) */}
       <EditorTour
         active={tourActive}
+        isPlaying={isPlaying}
+        onLockBlock={handleTourLockBlock}
         onComplete={() => {
           setTourActive(false)
           completeTour()

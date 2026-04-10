@@ -1,5 +1,31 @@
 const OVERLAY_ID = 'tq-overlay'
 const RING_ID = 'tq-ring'
+const BLOCK_IDS = ['tq-block-top', 'tq-block-bottom', 'tq-block-left', 'tq-block-right'] as const
+
+/**
+ * ボタン周囲を4枚の div で囲んで暗転させる。
+ * ボタン上には何も置かないため、スタッキングコンテキストに関わらずクリックが届く。
+ */
+export function showDarkenWithHole(x1: number, y1: number, x2: number, y2: number): void {
+  removeDarkenWithHole()
+  const bg = 'background:rgba(0,0,0,0.75);position:fixed;z-index:99998;pointer-events:all;'
+  const specs: { id: string; style: string }[] = [
+    { id: 'tq-block-top',    style: `${bg}left:0;top:0;right:0;height:${y1}px;` },
+    { id: 'tq-block-bottom', style: `${bg}left:0;top:${y2}px;right:0;bottom:0;` },
+    { id: 'tq-block-left',   style: `${bg}left:0;top:${y1}px;width:${x1}px;height:${y2 - y1}px;` },
+    { id: 'tq-block-right',  style: `${bg}left:${x2}px;top:${y1}px;right:0;height:${y2 - y1}px;` },
+  ]
+  specs.forEach(({ id, style }) => {
+    const d = document.createElement('div')
+    d.id = id
+    d.style.cssText = style
+    document.body.appendChild(d)
+  })
+}
+
+export function removeDarkenWithHole(): void {
+  BLOCK_IDS.forEach(id => document.getElementById(id)?.remove())
+}
 
 let spotlightCleanup: (() => void) | null = null
 let overlayResizeCleanup: (() => void) | null = null
@@ -90,7 +116,7 @@ export function showSpotlightOverlay(selector: string, onTargetClick: () => void
   lockScroll()
 
   const drawSpotlight = () => {
-    document.getElementById(OVERLAY_ID)?.remove()
+    removeDarkenWithHole()
     document.getElementById(RING_ID)?.remove()
 
     const r = target.getBoundingClientRect()
@@ -100,11 +126,7 @@ export function showSpotlightOverlay(selector: string, onTargetClick: () => void
     const x2 = r.right + pad
     const y2 = r.bottom + pad
 
-    const el = document.createElement('div')
-    el.id = OVERLAY_ID
-    el.style.cssText = 'position:fixed;inset:0;background:transparent;z-index:99998;pointer-events:all;'
-    appendSvgMaskOverlay(el, x1, y1, x2, y2, 'tq-spotlight-mask')
-    document.body.appendChild(el)
+    showDarkenWithHole(x1, y1, x2, y2)
 
     const ring = document.createElement('div')
     ring.id = RING_ID
@@ -152,6 +174,7 @@ export function removeOverlay(): void {
   spotlightCleanup?.()
   overlayResizeCleanup?.()
   overlayResizeCleanup = null
+  removeDarkenWithHole()
   document.getElementById(OVERLAY_ID)?.remove()
   document.getElementById(RING_ID)?.remove()
   unlockScroll()
