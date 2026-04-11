@@ -794,8 +794,17 @@ function InteractiveBlockFillStep({
     setSecondRect(null);
     const id = requestAnimationFrame(measure);
     window.addEventListener('resize', measure);
-    return () => { cancelAnimationFrame(id); window.removeEventListener('resize', measure); };
-  }, [measure]);
+    // ResizeDivider はウィンドウリサイズを発火しないため ResizeObserver で補完
+    // ターゲット要素 (内部 ResizeDivider) と preview-iframe (外部 ResizeDivider) の両方を監視
+    const ro = new ResizeObserver(measure);
+    const targetEl  = config?.targetId       ? document.getElementById(config.targetId)       : null;
+    const secondEl  = config?.secondTargetId ? document.getElementById(config.secondTargetId) : null;
+    const iframeEl  = document.getElementById('preview-iframe');
+    targetEl  && ro.observe(targetEl);
+    secondEl  && secondEl !== iframeEl && ro.observe(secondEl);
+    iframeEl  && ro.observe(iframeEl);
+    return () => { cancelAnimationFrame(id); window.removeEventListener('resize', measure); ro.disconnect(); };
+  }, [measure, config?.targetId, config?.secondTargetId]);
 
   const PAD = 6;
 
@@ -870,8 +879,15 @@ function InteractiveBlockHintStep({
   useEffect(() => {
     const id = requestAnimationFrame(measure);
     window.addEventListener('resize', measure);
-    return () => { cancelAnimationFrame(id); window.removeEventListener('resize', measure); };
-  }, [measure]);
+    // ResizeDivider はウィンドウリサイズを発火しないため ResizeObserver で補完
+    // ブロック要素 (内部 ResizeDivider) と preview-iframe (外部 ResizeDivider) を監視
+    const ro = new ResizeObserver(measure);
+    const blockEl  = document.querySelectorAll<HTMLElement>('[data-block-id]')[domIndex];
+    const iframeEl = document.getElementById('preview-iframe');
+    blockEl  && ro.observe(blockEl);
+    iframeEl && ro.observe(iframeEl);
+    return () => { cancelAnimationFrame(id); window.removeEventListener('resize', measure); ro.disconnect(); };
+  }, [measure, domIndex]);
 
   // ブロックがクリック（⋮ or ダブルクリック）されたら自動進行
   useEffect(() => {
@@ -1042,8 +1058,8 @@ function InteractiveRibbonStep({ onNext, onSkip }: { onNext: () => void; onSkip:
     : [];
 
   // ツールチップをボタンの真下に配置
-  const tTop  = btnRect ? btnRect.top + btnRect.height + 12 : 0;
-  const tLeft = btnRect ? Math.max(8, Math.min(btnRect.left + btnRect.width / 2 - TW / 2, vw - TW - 8)) : 0;
+  const tTop  = btnRect ? btnRect.top + btnRect.height + 12 : undefined;
+  const tLeft = btnRect ? Math.max(8, Math.min(btnRect.left + btnRect.width / 2 - TW / 2, vw - TW - 8)) : undefined;
 
   return createPortal(
     <>
@@ -1391,8 +1407,8 @@ function InteractiveThemeStep({ onNext, onSkip }: { onNext: () => void; onSkip: 
     : [];
 
   // ツールチップをボタンの真下・右揃えで表示
-  const tTop  = btnRect ? btnRect.top + btnRect.height + 12 : 0;
-  const tLeft = btnRect ? Math.max(8, btnRect.left + btnRect.width - TW) : 0;
+  const tTop  = btnRect ? btnRect.top + btnRect.height + 12 : undefined;
+  const tLeft = btnRect ? Math.max(8, btnRect.left + btnRect.width - TW) : undefined;
 
   return createPortal(
     <>
@@ -1560,8 +1576,17 @@ function InteractiveFieldStep({ onNext, onSkip }: { onNext: () => void; onSkip: 
     setSecondRect(null);
     const id = requestAnimationFrame(measure);
     window.addEventListener('resize', measure);
-    return () => { cancelAnimationFrame(id); window.removeEventListener('resize', measure); };
-  }, [measure]);
+    // ResizeDivider はウィンドウリサイズを発火しないため ResizeObserver で補完
+    // ターゲット要素 (内部 ResizeDivider) と preview-iframe (外部 ResizeDivider) の両方を監視
+    const ro = new ResizeObserver(measure);
+    const targetEl  = config?.targetId       ? document.getElementById(config.targetId)       : null;
+    const secondEl  = config?.secondTargetId ? document.getElementById(config.secondTargetId) : null;
+    const iframeEl  = document.getElementById('preview-iframe');
+    targetEl  && ro.observe(targetEl);
+    secondEl  && secondEl !== iframeEl && ro.observe(secondEl);
+    iframeEl  && ro.observe(iframeEl);
+    return () => { cancelAnimationFrame(id); window.removeEventListener('resize', measure); ro.disconnect(); };
+  }, [measure, config?.targetId, config?.secondTargetId]);
 
   const PAD = 6;
 
@@ -1824,6 +1849,40 @@ function InteractiveDragStep({
   );
 }
 
+// ─── Tour state persistence ────────────────────────────────────────────────
+
+export const TOUR_STATE_KEY = 'tebiki-chart_tour_state';
+
+type TourPersistedState = {
+  phase: Phase;
+  dragStageIndex: number;
+  tooltipStep: number;
+  fillPhaseIndex: number;
+  fillDoneCount: number;
+  hintStepDone: boolean;
+  fieldDone: boolean;
+  ribbonStepDone: boolean;
+  speechClearDone: boolean;
+  runPreviewDone: boolean;
+  themeStepDone: boolean;
+  showCompletion: boolean;
+};
+
+function loadTourState(): Partial<TourPersistedState> | null {
+  try {
+    const raw = localStorage.getItem(TOUR_STATE_KEY);
+    return raw ? (JSON.parse(raw) as TourPersistedState) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveTourState(s: TourPersistedState): void {
+  try {
+    localStorage.setItem(TOUR_STATE_KEY, JSON.stringify(s));
+  } catch { /* quota exceeded などを無視 */ }
+}
+
 // ─── Draggable tour panel ──────────────────────────────────────────────────
 
 // ステップをまたいで位置を引き継ぐためのモジュールレベル変数
@@ -1861,11 +1920,11 @@ function DraggableTourPanel({
     const el = panelRef.current;
     if (!el) return;
 
-    if (_tourPanelPos) {
+    if (_tourPanelPos && _tourPanelPos.top > 8) {
       // 前ステップでドラッグ済みの位置を引き継ぐ
       el.style.top       = `${_tourPanelPos.top}px`;
       el.style.left      = `${_tourPanelPos.left}px`;
-    } else if (initTopRef.current !== undefined) {
+    } else if (initTopRef.current !== undefined && initTopRef.current > 8) {
       // 計算済み top/left で配置
       el.style.top  = `${initTopRef.current}px`;
       el.style.left = `${initLeftRef.current ?? 0}px`;
@@ -1877,6 +1936,15 @@ function DraggableTourPanel({
     }
     el.style.bottom    = 'auto';
     el.style.transform = 'none';
+
+    // アンマウント時に現在位置を保存 → 次ステップで引き継ぐ
+    return () => {
+      const left = parseFloat(el.style.left);
+      const top  = parseFloat(el.style.top);
+      if (!isNaN(left) && !isNaN(top)) {
+        _tourPanelPos = { left, top };
+      }
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -2016,8 +2084,16 @@ function TooltipSteps({
 
   useEffect(() => {
     window.addEventListener('resize', updateRect);
-    return () => window.removeEventListener('resize', updateRect);
-  }, [updateRect]);
+    // ResizeDivider はウィンドウリサイズを発火しないため ResizeObserver で補完
+    // ターゲット要素自体 (内部 ResizeDivider によるリサイズ) と
+    // preview-iframe (外部 ResizeDivider によるリサイズ) の両方を監視する
+    const ro = new ResizeObserver(updateRect);
+    const targetEl = document.getElementById(currentStep.targetId);
+    const iframeEl = document.getElementById('preview-iframe');
+    targetEl && ro.observe(targetEl);
+    iframeEl && ro.observe(iframeEl);
+    return () => { window.removeEventListener('resize', updateRect); ro.disconnect(); };
+  }, [updateRect, currentStep.targetId]);
 
   // waitForClick: ターゲット要素のクリックで自動進行
   useEffect(() => {
@@ -2049,7 +2125,11 @@ function TooltipSteps({
     };
     const id = requestAnimationFrame(measure);
     window.addEventListener('resize', measure);
-    return () => { cancelAnimationFrame(id); window.removeEventListener('resize', measure); };
+    // ResizeDivider はウィンドウリサイズを発火しないため ResizeObserver で補完
+    const iframeEl = document.getElementById('preview-iframe');
+    const ro = iframeEl ? new ResizeObserver(measure) : null;
+    iframeEl && ro?.observe(iframeEl);
+    return () => { cancelAnimationFrame(id); window.removeEventListener('resize', measure); ro?.disconnect(); };
   }, [step, currentStep.waitForClickIn]);
 
   // rect 確定後に位置を DOM に適用（_tourPanelPos 優先、なければターゲット相対位置）
@@ -2282,19 +2362,32 @@ type Phase = 'drag' | 'reorder' | 'menu' | 'fill' | 'block-hint' | 'ribbon' | 's
 function TourOrchestrator({ onComplete, onSkip, onPhaseChange }: Omit<Props, 'active'>) {
   const blockCount = useEditorStore((s) => s.scenario?.blocks.length ?? 0);
   const blocks     = useEditorStore((s) => s.scenario?.blocks ?? []);
-  const [phase, setPhase]               = useState<Phase>('drag');
-  const [dragStageIndex, setDragStageIndex] = useState(0);
-  const [tooltipStep, setTooltipStep]   = useState(0);
-  const [fillPhaseIndex,  setFillPhaseIndex]  = useState(0);      // 0 = 2nd block, 1 = 3rd block
-  const [fillDoneCount,   setFillDoneCount]   = useState(0);      // 0–2
-  const [hintStepDone,    setHintStepDone]    = useState(false);
-  const [fieldDone,       setFieldDone]       = useState(false);
-  const [ribbonStepDone,  setRibbonStepDone]  = useState(false);
-  const [speechClearDone,  setSpeechClearDone]  = useState(false);
-  const [runPreviewDone,   setRunPreviewDone]   = useState(false);
-  const [themeStepDone,    setThemeStepDone]    = useState(false);
-  const [showCompletion,  setShowCompletion]   = useState(false);
-  const prevBlockCountRef   = useRef(blockCount);
+
+  // localStorage から保存済み状態を復元（lazy initializer により初回マウント時のみ読み込む）
+  const [phase, setPhase]               = useState<Phase>          (() => { const s = loadTourState(); return s?.phase          ?? 'drag';  });
+  const [dragStageIndex, setDragStageIndex] = useState<number>     (() => { const s = loadTourState(); return s?.dragStageIndex ?? 0;       });
+  const [tooltipStep, setTooltipStep]   = useState<number>         (() => { const s = loadTourState(); return s?.tooltipStep    ?? 0;       });
+  const [fillPhaseIndex,  setFillPhaseIndex]  = useState<number>   (() => { const s = loadTourState(); return s?.fillPhaseIndex  ?? 0;      });
+  const [fillDoneCount,   setFillDoneCount]   = useState<number>   (() => { const s = loadTourState(); return s?.fillDoneCount   ?? 0;      });
+  const [hintStepDone,    setHintStepDone]    = useState<boolean>  (() => { const s = loadTourState(); return s?.hintStepDone    ?? false;  });
+  const [fieldDone,       setFieldDone]       = useState<boolean>  (() => { const s = loadTourState(); return s?.fieldDone       ?? false;  });
+  const [ribbonStepDone,  setRibbonStepDone]  = useState<boolean>  (() => { const s = loadTourState(); return s?.ribbonStepDone  ?? false;  });
+  const [speechClearDone, setSpeechClearDone] = useState<boolean>  (() => { const s = loadTourState(); return s?.speechClearDone ?? false;  });
+  const [runPreviewDone,  setRunPreviewDone]  = useState<boolean>  (() => { const s = loadTourState(); return s?.runPreviewDone  ?? false;  });
+  const [themeStepDone,   setThemeStepDone]   = useState<boolean>  (() => { const s = loadTourState(); return s?.themeStepDone   ?? false;  });
+  const [showCompletion,  setShowCompletion]  = useState<boolean>  (() => { const s = loadTourState(); return s?.showCompletion  ?? false;  });
+  const prevBlockCountRef = useRef(blockCount);
+
+  // 状態が変化するたびに localStorage へ保存
+  useEffect(() => {
+    saveTourState({
+      phase, dragStageIndex, tooltipStep, fillPhaseIndex, fillDoneCount,
+      hintStepDone, fieldDone, ribbonStepDone, speechClearDone, runPreviewDone,
+      themeStepDone, showCompletion,
+    });
+  }, [phase, dragStageIndex, tooltipStep, fillPhaseIndex, fillDoneCount,
+      hintStepDone, fieldDone, ribbonStepDone, speechClearDone, runPreviewDone,
+      themeStepDone, showCompletion]);
 
   useEffect(() => { onPhaseChange?.(phase); }, [phase, onPhaseChange]);
   // 並び替えステップ開始時の speech / spotlight の相対順序を記録
@@ -2456,7 +2549,15 @@ function TourOrchestrator({ onComplete, onSkip, onPhaseChange }: Omit<Props, 'ac
 
 export default function EditorTour({ active, onComplete, onSkip, onPhaseChange }: Props) {
   if (!active || typeof document === 'undefined') return null;
-  const handleComplete = () => { _tourPanelPos = null; onComplete(); };
-  const handleSkip    = () => { _tourPanelPos = null; onSkip(); };
+  const handleComplete = () => {
+    _tourPanelPos = null;
+    localStorage.removeItem(TOUR_STATE_KEY);
+    onComplete();
+  };
+  const handleSkip = () => {
+    _tourPanelPos = null;
+    localStorage.removeItem(TOUR_STATE_KEY);
+    onSkip();
+  };
   return <TourOrchestrator onComplete={handleComplete} onSkip={handleSkip} onPhaseChange={onPhaseChange} />;
 }

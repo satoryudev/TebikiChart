@@ -70,9 +70,10 @@ function injectBlock(content: string, block: string): string {
 
 interface Props {
   onExportCallback?: () => void
+  tourActive?: boolean
 }
 
-export default function PreviewToolbar({ onExportCallback }: Props) {
+export default function PreviewToolbar({ onExportCallback, tourActive }: Props) {
   const { scenario, setScenario } = useEditorStore()
   const router = useRouter()
 
@@ -107,7 +108,10 @@ export default function PreviewToolbar({ onExportCallback }: Props) {
       }
       saveScenario(data)
       setScenario(data)
-      router.push(`/editor/${data.id}`)
+      // チュートリアル中はページ遷移しない（ナビゲートするとツアーが step 1 からリスタートするため）
+      if (!tourActive) {
+        router.push(`/editor/${data.id}`)
+      }
     } catch {
       alert('JSONの読み込みに失敗しました。')
     }

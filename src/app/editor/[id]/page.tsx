@@ -84,7 +84,7 @@ function CollapsedTab({ title, onExpand }: { title: string; onExpand: () => void
 }
 
 /** ブランチビューとメインキャンバスを切り替えるパネルコンテンツ */
-function CanvasPanelContent({ onExportCallback }: { onExportCallback: () => void }) {
+function CanvasPanelContent({ onExportCallback, tourActive }: { onExportCallback: () => void; tourActive?: boolean }) {
   const { currentBranchView, setBranchView, resetBranchView } = useBranchView()
   const { activeBlockId } = useEditorStore()
 
@@ -108,7 +108,7 @@ function CanvasPanelContent({ onExportCallback }: { onExportCallback: () => void
   if (currentBranchView) return <BranchCanvas />
   return (
     <>
-      <PreviewToolbar onExportCallback={onExportCallback} />
+      <PreviewToolbar onExportCallback={onExportCallback} tourActive={tourActive} />
       <Canvas />
     </>
   )
@@ -439,7 +439,7 @@ export default function EditorPage() {
 
           {/* キャンバス本体 */}
           <div className="flex flex-col flex-1 min-w-[320px] overflow-hidden">
-            <CanvasPanelContent onExportCallback={() => {}} />
+            <CanvasPanelContent onExportCallback={() => {}} tourActive={tourActive} />
           </div>
 
           {/* 内部 ResizeDivider（キャンバス ↔ ブロック設定）*/}
