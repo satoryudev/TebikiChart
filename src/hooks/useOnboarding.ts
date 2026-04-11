@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 export const ONBOARDING_KEYS = {
   HAS_VISITED: 'tebiki-chart_has_visited',
   TOUR_COMPLETED: 'tebiki-chart_tour_completed',
+  TOUR_STATE: 'tebiki-chart_tour_state',
 } as const;
 
 interface OnboardingState {
@@ -39,6 +40,7 @@ export function useOnboarding(): OnboardingState {
   const resetOnboarding = () => {
     localStorage.removeItem(ONBOARDING_KEYS.HAS_VISITED);
     localStorage.removeItem(ONBOARDING_KEYS.TOUR_COMPLETED);
+    localStorage.removeItem(ONBOARDING_KEYS.TOUR_STATE);
     setHasVisited(false);
     setTourCompleted(false);
   };
